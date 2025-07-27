@@ -1,26 +1,330 @@
 // SuperClaude Blog Interactive Features
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile Navigation Toggle
+    // Enhanced Mobile Navigation System
     const navToggle = document.querySelector('.nav-toggle');
     const navList = document.querySelector('.nav-list');
+    const header = document.querySelector('.header');
+    let isMenuOpen = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let currentTouchX = 0;
+    let menuTouchHandler = null;
     
+    // Enhanced Mobile Navigation Toggle with improved animations
     if (navToggle && navList) {
-        navToggle.addEventListener('click', function() {
-            navList.classList.toggle('active');
-            
-            // Toggle hamburger animation
+        // Add ARIA attributes for better accessibility
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.setAttribute('aria-controls', 'nav-list');
+        navList.setAttribute('id', 'nav-list');
+        navList.setAttribute('role', 'menu');
+        
+        // Enhanced hamburger animation with CSS transforms
+        function updateHamburgerAnimation(isOpen) {
             const spans = navToggle.querySelectorAll('span');
             spans.forEach((span, index) => {
-                if (navList.classList.contains('active')) {
-                    if (index === 0) span.style.transform = 'rotate(45deg) translate(5px, 5px)';
-                    if (index === 1) span.style.opacity = '0';
-                    if (index === 2) span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
+                if (isOpen) {
+                    if (index === 0) {
+                        span.style.transform = 'rotate(45deg) translate(5px, 5px)';
+                        span.style.transformOrigin = 'center';
+                    }
+                    if (index === 1) {
+                        span.style.opacity = '0';
+                        span.style.transform = 'scale(0)';
+                    }
+                    if (index === 2) {
+                        span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
+                        span.style.transformOrigin = 'center';
+                    }
                 } else {
                     span.style.transform = 'none';
                     span.style.opacity = '1';
+                    span.style.transformOrigin = 'center';
                 }
             });
+        }
+        
+        // Toggle menu function
+        function toggleMenu(open = null) {
+            const shouldOpen = open !== null ? open : !isMenuOpen;
+            isMenuOpen = shouldOpen;
+            
+            navList.classList.toggle('active', shouldOpen);
+            navToggle.classList.toggle('active', shouldOpen);
+            navToggle.setAttribute('aria-expanded', shouldOpen.toString());
+            
+            // Enhanced hamburger animation
+            updateHamburgerAnimation(shouldOpen);
+            
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = shouldOpen ? 'hidden' : '';
+            
+            // Add backdrop for mobile menu
+            if (shouldOpen) {
+                createMenuBackdrop();
+            } else {
+                removeMenuBackdrop();
+            }
+            
+            // Focus management for accessibility
+            if (shouldOpen) {
+                navList.focus();
+            } else {
+                navToggle.focus();
+            }
+        }
+        
+        // Create backdrop for mobile menu
+        function createMenuBackdrop() {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'nav-backdrop';
+            backdrop.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                backdrop-filter: blur(2px);
+            `;
+            
+            // Close menu when backdrop is clicked
+            backdrop.addEventListener('click', () => toggleMenu(false));
+            
+            document.body.appendChild(backdrop);
+            
+            // Animate backdrop in
+            requestAnimationFrame(() => {
+                backdrop.style.opacity = '1';
+            });
+        }
+        
+        // Remove backdrop
+        function removeMenuBackdrop() {
+            const backdrop = document.querySelector('.nav-backdrop');
+            if (backdrop) {
+                backdrop.style.opacity = '0';
+                setTimeout(() => {
+                    if (backdrop.parentNode) {
+                        backdrop.parentNode.removeChild(backdrop);
+                    }
+                }, 300);
+            }
+        }
+        
+        // Enhanced touch event handling
+        navToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMenu();
         });
+        
+        // Improved touch responsiveness
+        navToggle.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            navToggle.style.transform = 'scale(0.95)';
+        }, { passive: false });
+        
+        navToggle.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            navToggle.style.transform = 'scale(1)';
+            toggleMenu();
+        }, { passive: false });
+        
+        // Swipe gesture support for navigation
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+        let isSwipeValid = false;
+        
+        // Touch start handler
+        function handleTouchStart(e) {
+            swipeStartX = e.touches[0].clientX;
+            swipeStartY = e.touches[0].clientY;
+            isSwipeValid = true;
+        }
+        
+        // Touch move handler for swipe detection
+        function handleTouchMove(e) {
+            if (!isSwipeValid) return;
+            
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            const deltaX = touchX - swipeStartX;
+            const deltaY = touchY - swipeStartY;
+            
+            // Check if it's a horizontal swipe (not vertical scroll)
+            if (Math.abs(deltaY) > Math.abs(deltaX)) {
+                isSwipeValid = false;
+                return;
+            }
+            
+            // Prevent default if it's a valid swipe
+            if (Math.abs(deltaX) > 10) {
+                e.preventDefault();
+            }
+        }
+        
+        // Touch end handler for swipe completion
+        function handleTouchEnd(e) {
+            if (!isSwipeValid) return;
+            
+            const touchX = e.changedTouches[0].clientX;
+            const deltaX = touchX - swipeStartX;
+            const threshold = 50; // Minimum swipe distance
+            
+            // Right swipe to open menu (from left edge)
+            if (deltaX > threshold && swipeStartX < 50 && !isMenuOpen) {
+                toggleMenu(true);
+            }
+            // Left swipe to close menu
+            else if (deltaX < -threshold && isMenuOpen) {
+                toggleMenu(false);
+            }
+            
+            isSwipeValid = false;
+        }
+        
+        // Add swipe listeners to document for edge swipes
+        if (window.innerWidth <= 768) {
+            document.addEventListener('touchstart', handleTouchStart, { passive: true });
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd, { passive: true });
+            document.mobileListenersAdded = true;
+        }
+        
+        // Mobile performance optimizations
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Re-enable swipe listeners if switching to mobile
+                if (window.innerWidth <= 768 && !document.mobileListenersAdded) {
+                    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+                    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+                    document.mobileListenersAdded = true;
+                }
+                // Remove listeners if switching to desktop
+                else if (window.innerWidth > 768 && document.mobileListenersAdded) {
+                    document.removeEventListener('touchstart', handleTouchStart);
+                    document.removeEventListener('touchmove', handleTouchMove);
+                    document.removeEventListener('touchend', handleTouchEnd);
+                    document.mobileListenersAdded = false;
+                }
+                
+                // Close menu if resizing to desktop
+                if (window.innerWidth > 768 && isMenuOpen) {
+                    toggleMenu(false);
+                }
+            }, 150);
+        });
+        
+        // Enhanced keyboard navigation
+        navList.addEventListener('keydown', (e) => {
+            const navItems = navList.querySelectorAll('a');
+            const currentIndex = Array.from(navItems).indexOf(document.activeElement);
+            
+            switch(e.key) {
+                case 'Escape':
+                    e.preventDefault();
+                    toggleMenu(false);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    const nextIndex = (currentIndex + 1) % navItems.length;
+                    navItems[nextIndex].focus();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    const prevIndex = currentIndex === 0 ? navItems.length - 1 : currentIndex - 1;
+                    navItems[prevIndex].focus();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    navItems[0].focus();
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    navItems[navItems.length - 1].focus();
+                    break;
+            }
+        });
+        
+        // Add role and aria attributes to navigation items
+        navList.querySelectorAll('a').forEach((link, index) => {
+            link.setAttribute('role', 'menuitem');
+            link.setAttribute('tabindex', index === 0 ? '0' : '-1');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (isMenuOpen && !navList.contains(e.target) && !navToggle.contains(e.target)) {
+                toggleMenu(false);
+            }
+        });
+        
+        // (Resize listener moved above for better performance optimization)
+        
+        // Mobile-specific enhancements
+        if ('ontouchstart' in window) {
+            // Add haptic feedback support for supported devices
+            function triggerHapticFeedback(type = 'light') {
+                if (navigator.vibrate) {
+                    switch(type) {
+                        case 'light':
+                            navigator.vibrate(10);
+                            break;
+                        case 'medium':
+                            navigator.vibrate(25);
+                            break;
+                        case 'heavy':
+                            navigator.vibrate(50);
+                            break;
+                    }
+                }
+            }
+            
+            // Add haptic feedback to navigation interactions
+            navToggle.addEventListener('touchstart', () => triggerHapticFeedback('light'));
+            navList.querySelectorAll('a').forEach(link => {
+                link.addEventListener('touchstart', () => triggerHapticFeedback('light'));
+            });
+        }
+        
+        // Double tap to close menu (additional gesture)
+        let lastTap = 0;
+        navList.addEventListener('touchend', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 500 && tapLength > 0 && e.target === navList) {
+                e.preventDefault();
+                toggleMenu(false);
+            }
+            lastTap = currentTime;
+        });
+        
+        // Orientation change handling
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                if (isMenuOpen) {
+                    // Adjust menu position after orientation change
+                    navList.style.maxHeight = `calc(100vh - ${header.offsetHeight}px)`;
+                }
+            }, 100);
+        });
+        
+        // Performance monitoring for mobile
+        if ('performance' in window && 'mark' in performance) {
+            performance.mark('mobile-nav-init-start');
+            
+            // Mark completion of mobile nav initialization
+            setTimeout(() => {
+                performance.mark('mobile-nav-init-end');
+                performance.measure('mobile-nav-init', 'mobile-nav-init-start', 'mobile-nav-init-end');
+            }, 0);
+        }
     }
 
     // Smooth Scrolling for Anchor Links
@@ -37,14 +341,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     behavior: 'smooth'
                 });
 
-                // Close mobile menu if open
+                // Close mobile menu if open with proper cleanup
                 if (navList && navList.classList.contains('active')) {
-                    navList.classList.remove('active');
-                    const spans = navToggle.querySelectorAll('span');
-                    spans.forEach(span => {
-                        span.style.transform = 'none';
-                        span.style.opacity = '1';
-                    });
+                    toggleMenu(false);
                 }
             }
         });
