@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>Mobile Test - SuperClaude</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 1rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        .test-text {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .code-test {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mobile Rendering Test</h1>
+    
+    <div class="test-text">
+        <h2>한글 텍스트 렌더링 테스트</h2>
+        <p>SuperClaude는 Claude Code를 위한 고급 프레임워크로, AI 기반 개발을 위한 포괄적인 도구 세트를 제공합니다.</p>
+        <p>This text should render crisp and clear on mobile devices without any blurriness.</p>
+    </div>
+    
+    <div class="code-test">
+        <pre><code>/implement React 컴포넌트 --type component --framework react
+# 결과: 
+# - Button.tsx 파일 생성
+# - TypeScript 인터페이스 정의
+# - 접근성 기능 포함</code></pre>
+    </div>
+    
+    <div class="test-text">
+        <p>✅ Text rendering optimized</p>
+        <p>✅ Viewport properly configured</p>
+        <p>✅ Hardware acceleration enabled</p>
+        <p>✅ Font smoothing applied</p>
+    </div>
+</body>
+</html>

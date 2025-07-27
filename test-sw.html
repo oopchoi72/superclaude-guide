@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Worker Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2rem; }
+        .status { padding: 1rem; margin: 1rem 0; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .log { background: #f8f9fa; padding: 1rem; border: 1px solid #dee2e6; margin: 1rem 0; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Service Worker Test</h1>
+    <div id="status"></div>
+    <div id="log"></div>
+    
+    <script>
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+        let logContent = '';
+        
+        function log(message, type = 'info') {
+            console.log(message);
+            const timestamp = new Date().toLocaleTimeString();
+            logContent += `[${timestamp}] ${message}\n`;
+            logDiv.textContent = logContent;
+        }
+        
+        function updateStatus(message, className) {
+            statusDiv.className = `status ${className}`;
+            statusDiv.textContent = message;
+        }
+        
+        async function testServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                updateStatus('Service Worker not supported', 'error');
+                log('Service Worker not supported in this browser');
+                return;
+            }
+            
+            log('Service Worker supported');
+            updateStatus('Testing Service Worker registration...', 'info');
+            
+            try {
+                // Try multiple paths for different deployment scenarios
+                const swPaths = ['./sw.js', '/sw.js', `${window.location.pathname}sw.js`];
+                let registration = null;
+                
+                for (const swPath of swPaths) {
+                    try {
+                        log(`Testing path: ${swPath}`);
+                        
+                        // Check if sw.js exists at this path
+                        const response = await fetch(swPath, { method: 'HEAD' });
+                        log(`Response for ${swPath}: ${response.status} ${response.statusText}`);
+                        
+                        if (response.ok) {
+                            registration = await navigator.serviceWorker.register(swPath, {
+                                scope: './'
+                            });
+                            log(`Service Worker registered successfully with path: ${swPath}`);
+                            log(`Registration scope: ${registration.scope}`);
+                            updateStatus(`Service Worker registered successfully! Path: ${swPath}`, 'success');
+                            break;
+                        }
+                    } catch (pathError) {
+                        log(`Failed to register with ${swPath}: ${pathError.message}`);
+                        continue;
+                    }
+                }
+                
+                if (!registration) {
+                    updateStatus('Service Worker registration failed: sw.js not found at any expected path', 'error');
+                    log('No valid sw.js path found');
+                } else {
+                    // Listen for updates
+                    registration.addEventListener('updatefound', () => {
+                        log('Service Worker update found');
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            log(`Service Worker state: ${newWorker.state}`);
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                log('Service Worker updated. New content available.');
+                            }
+                        });
+                    });
+                    
+                    // Check current state
+                    if (registration.active) {
+                        log(`Active Service Worker state: ${registration.active.state}`);
+                    }
+                    if (registration.waiting) {
+                        log('Service Worker waiting');
+                    }
+                    if (registration.installing) {
+                        log('Service Worker installing');
+                    }
+                }
+            } catch (error) {
+                updateStatus(`Service Worker registration failed: ${error.message}`, 'error');
+                log(`Registration error: ${error.message}`);
+            }
+        }
+        
+        // Test when page loads
+        testServiceWorker();
+        
+        // Also check if sw.js exists
+        fetch('./sw.js')
+            .then(response => {
+                log(`Direct fetch of ./sw.js: ${response.status} ${response.statusText}`);
+                if (response.ok) {
+                    return response.text();
+                }
+                throw new Error(`HTTP ${response.status}`);
+            })
+            .then(content => {
+                log(`sw.js content loaded (${content.length} characters)`);
+            })
+            .catch(error => {
+                log(`Failed to fetch ./sw.js: ${error.message}`);
+            });
+    </script>
+</body>
+</html>

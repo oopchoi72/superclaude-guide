@@ -1,9 +1,424 @@
 // SuperClaude Blog Interactive Features
+// Enhanced with comprehensive error handling and graceful fallbacks
+
+// Critical mobile rendering optimizations
+function optimizeMobileRendering() {
+    // Force repaint to ensure smooth rendering
+    if (window.innerWidth <= 768) {
+        document.body.style.transform = 'translateZ(0)';
+        document.documentElement.style.webkitFontSmoothing = 'antialiased';
+        document.documentElement.style.mozOsxFontSmoothing = 'grayscale';
+        
+        // Ensure viewport stability
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover');
+        }
+        
+        // Fix mobile text rendering
+        document.querySelectorAll('*').forEach(el => {
+            if (el.children.length === 0 && el.textContent.trim()) {
+                el.style.webkitFontSmoothing = 'antialiased';
+                el.style.mozOsxFontSmoothing = 'grayscale';
+                el.style.textRendering = 'optimizeLegibility';
+            }
+        });
+        
+        // Force hardware acceleration on key elements
+        const keyElements = document.querySelectorAll('.nav-list, .content, .hero, .code-block');
+        keyElements.forEach(el => {
+            el.style.webkitTransform = 'translateZ(0)';
+            el.style.transform = 'translateZ(0)';
+        });
+    }
+}
+
+// Apply optimizations immediately and on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', optimizeMobileRendering);
+} else {
+    optimizeMobileRendering();
+}
+
+// Enhanced resize handler for mobile
+let mobileResizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(mobileResizeTimeout);
+    mobileResizeTimeout = setTimeout(() => {
+        if (window.innerWidth <= 768) {
+            optimizeMobileRendering();
+        }
+    }, 150);
+});
+
+// Global error tracking
+const ErrorTracker = {
+    errors: [],
+    maxErrors: 50,
+    
+    log(error, context = 'unknown', severity = 'error') {
+        const errorInfo = {
+            timestamp: new Date().toISOString(),
+            message: error.message || error,
+            context,
+            severity,
+            stack: error.stack,
+            userAgent: navigator.userAgent,
+            url: window.location.href
+        };
+        
+        this.errors.push(errorInfo);
+        
+        // Keep only recent errors
+        if (this.errors.length > this.maxErrors) {
+            this.errors.shift();
+        }
+        
+        // Console logging for development
+        console.group(`🚨 ${severity.toUpperCase()}: ${context}`);
+        console.error(error);
+        console.log('Context:', context);
+        console.log('Timestamp:', errorInfo.timestamp);
+        console.groupEnd();
+        
+        // Optional: Send to analytics/monitoring service
+        this.reportError(errorInfo);
+    },
+    
+    reportError(errorInfo) {
+        // Placeholder for error reporting service
+        // In production, you would send this to your monitoring service
+        if (window.gtag) {
+            gtag('event', 'exception', {
+                description: errorInfo.message,
+                fatal: errorInfo.severity === 'critical'
+            });
+        }
+    },
+    
+    getRecentErrors() {
+        return this.errors.slice(-10);
+    }
+};
+
+// Enhanced feature detection with fallbacks
+const FeatureDetection = {
+    hasClipboardAPI: () => {
+        try {
+            return navigator.clipboard && typeof navigator.clipboard.writeText === 'function';
+        } catch (e) {
+            return false;
+        }
+    },
+    
+    hasIntersectionObserver: () => {
+        try {
+            return 'IntersectionObserver' in window;
+        } catch (e) {
+            return false;
+        }
+    },
+    
+    hasPerformanceAPI: () => {
+        try {
+            return 'performance' in window && 'mark' in performance;
+        } catch (e) {
+            return false;
+        }
+    },
+    
+    hasServiceWorker: () => {
+        try {
+            return 'serviceWorker' in navigator;
+        } catch (e) {
+            return false;
+        }
+    },
+    
+    hasTouchEvents: () => {
+        try {
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        } catch (e) {
+            return false;
+        }
+    }
+};
+
+// Safe DOM operations with error handling
+const SafeDOM = {
+    querySelector(selector, context = document) {
+        try {
+            return context.querySelector(selector);
+        } catch (e) {
+            ErrorTracker.log(e, `querySelector: ${selector}`, 'warning');
+            return null;
+        }
+    },
+    
+    querySelectorAll(selector, context = document) {
+        try {
+            return context.querySelectorAll(selector);
+        } catch (e) {
+            ErrorTracker.log(e, `querySelectorAll: ${selector}`, 'warning');
+            return [];
+        }
+    },
+    
+    addEventListener(element, event, handler, options = {}) {
+        try {
+            if (element && typeof element.addEventListener === 'function') {
+                element.addEventListener(event, (e) => {
+                    try {
+                        handler(e);
+                    } catch (error) {
+                        ErrorTracker.log(error, `Event handler: ${event}`, 'error');
+                    }
+                }, options);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            ErrorTracker.log(e, `addEventListener: ${event}`, 'warning');
+            return false;
+        }
+    },
+    
+    setAttribute(element, attribute, value) {
+        try {
+            if (element && typeof element.setAttribute === 'function') {
+                element.setAttribute(attribute, value);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            ErrorTracker.log(e, `setAttribute: ${attribute}`, 'warning');
+            return false;
+        }
+    },
+    
+    addClass(element, className) {
+        try {
+            if (element && element.classList) {
+                element.classList.add(className);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            ErrorTracker.log(e, `addClass: ${className}`, 'warning');
+            return false;
+        }
+    },
+    
+    removeClass(element, className) {
+        try {
+            if (element && element.classList) {
+                element.classList.remove(className);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            ErrorTracker.log(e, `removeClass: ${className}`, 'warning');
+            return false;
+        }
+    }
+};
+
+// Resource Loading Manager with Fallbacks
+const ResourceManager = {
+    loadedResources: new Set(),
+    failedResources: new Set(),
+    fallbackFonts: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+    
+    // Check if external resources are loading properly
+    async checkExternalResources() {
+        const resources = [
+            {
+                type: 'font',
+                url: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+                fallback: () => this.applyFallbackFonts()
+            },
+            {
+                type: 'script',
+                url: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js',
+                fallback: () => this.disableCodeHighlighting()
+            },
+            {
+                type: 'script',
+                url: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js',
+                fallback: () => this.disableCodeHighlighting()
+            },
+            {
+                type: 'style',
+                url: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css',
+                fallback: () => this.applyFallbackCodeStyling()
+            }
+        ];
+        
+        const checkPromises = resources.map(resource => this.checkResource(resource));
+        await Promise.allSettled(checkPromises);
+        
+        this.reportResourceStatus();
+    },
+    
+    async checkResource(resource) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            
+            const response = await fetch(resource.url, {
+                method: 'HEAD',
+                signal: controller.signal,
+                mode: 'no-cors' // For external resources
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok || response.type === 'opaque') {
+                this.loadedResources.add(resource.url);
+            } else {
+                throw new Error(`Resource failed to load: ${response.status}`);
+            }
+        } catch (error) {
+            ErrorTracker.log(error, `Resource Check: ${resource.type}`, 'warning');
+            this.failedResources.add(resource.url);
+            
+            // Apply fallback
+            try {
+                await resource.fallback();
+            } catch (fallbackError) {
+                ErrorTracker.log(fallbackError, `Fallback: ${resource.type}`, 'error');
+            }
+        }
+    },
+    
+    applyFallbackFonts() {
+        try {
+            const fallbackCSS = `
+                * {
+                    font-family: ${this.fallbackFonts.join(', ')} !important;
+                }
+            `;
+            
+            const style = document.createElement('style');
+            style.id = 'fallback-fonts';
+            style.textContent = fallbackCSS;
+            document.head.appendChild(style);
+            
+            console.log('Applied fallback fonts due to Inter font loading failure');
+        } catch (error) {
+            ErrorTracker.log(error, 'Fallback Fonts', 'error');
+        }
+    },
+    
+    disableCodeHighlighting() {
+        try {
+            // Mark that code highlighting should be disabled
+            window.codeHighlightingDisabled = true;
+            
+            // Apply basic code styling instead
+            const fallbackCSS = `
+                pre, code {
+                    background-color: #f8f9fa !important;
+                    border: 1px solid #e9ecef !important;
+                    border-radius: 4px !important;
+                    padding: 8px 12px !important;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+                    font-size: 14px !important;
+                    line-height: 1.4 !important;
+                    color: #333 !important;
+                }
+                
+                .code-block pre {
+                    background-color: #2d3748 !important;
+                    color: #e2e8f0 !important;
+                    overflow-x: auto !important;
+                }
+            `;
+            
+            const style = document.createElement('style');
+            style.id = 'fallback-code-styling';
+            style.textContent = fallbackCSS;
+            document.head.appendChild(style);
+            
+            console.log('Applied fallback code styling due to Prism.js loading failure');
+        } catch (error) {
+            ErrorTracker.log(error, 'Code Highlighting Fallback', 'error');
+        }
+    },
+    
+    applyFallbackCodeStyling() {
+        try {
+            const fallbackCSS = `
+                .code-block pre {
+                    background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%) !important;
+                    color: #d4d4d4 !important;
+                    padding: 20px !important;
+                    border-radius: 8px !important;
+                    font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+                    font-size: 14px !important;
+                    line-height: 1.5 !important;
+                    overflow-x: auto !important;
+                    border: 1px solid #404040 !important;
+                }
+                
+                code {
+                    background-color: #f1f3f4 !important;
+                    padding: 2px 6px !important;
+                    border-radius: 3px !important;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+                    font-size: 13px !important;
+                    color: #c7254e !important;
+                }
+            `;
+            
+            const style = document.createElement('style');
+            style.id = 'fallback-prism-styling';
+            style.textContent = fallbackCSS;
+            document.head.appendChild(style);
+            
+            console.log('Applied fallback Prism styling due to CDN failure');
+        } catch (error) {
+            ErrorTracker.log(error, 'Prism Styling Fallback', 'error');
+        }
+    },
+    
+    reportResourceStatus() {
+        const total = this.loadedResources.size + this.failedResources.size;
+        const successRate = total > 0 ? (this.loadedResources.size / total) * 100 : 100;
+        
+        console.group('📊 Resource Loading Report');
+        console.log(`Success Rate: ${successRate.toFixed(1)}%`);
+        console.log(`Loaded: ${this.loadedResources.size}`);
+        console.log(`Failed: ${this.failedResources.size}`);
+        
+        if (this.failedResources.size > 0) {
+            console.log('Failed Resources:', Array.from(this.failedResources));
+        }
+        
+        console.groupEnd();
+        
+        // Track in analytics if available
+        if (window.gtag) {
+            gtag('event', 'resource_loading', {
+                event_category: 'performance',
+                event_label: 'external_resources',
+                value: Math.round(successRate)
+            });
+        }
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Enhanced Mobile Navigation System
-    const navToggle = document.querySelector('.nav-toggle');
-    const navList = document.querySelector('.nav-list');
-    const header = document.querySelector('.header');
+    try {
+    // Enhanced Mobile Navigation System with Error Handling
+    const navToggle = SafeDOM.querySelector('.nav-toggle');
+    const navList = SafeDOM.querySelector('.nav-list');
+    const header = SafeDOM.querySelector('.header');
+    
+    if (!navToggle || !navList) {
+        ErrorTracker.log(new Error('Navigation elements not found'), 'Navigation Setup', 'warning');
+        console.warn('Navigation elements missing - mobile menu may not work properly');
+    }
     let isMenuOpen = false;
     let touchStartX = 0;
     let touchStartY = 0;
@@ -12,64 +427,127 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Enhanced Mobile Navigation Toggle with improved animations
     if (navToggle && navList) {
-        // Add ARIA attributes for better accessibility
-        navToggle.setAttribute('aria-expanded', 'false');
-        navToggle.setAttribute('aria-controls', 'nav-list');
-        navList.setAttribute('id', 'nav-list');
-        navList.setAttribute('role', 'menu');
+        // Add ARIA attributes for better accessibility with error handling
+        SafeDOM.setAttribute(navToggle, 'aria-expanded', 'false');
+        SafeDOM.setAttribute(navToggle, 'aria-controls', 'nav-list');
+        SafeDOM.setAttribute(navList, 'id', 'nav-list');
+        SafeDOM.setAttribute(navList, 'role', 'menu');
         
         // Enhanced hamburger animation with CSS transforms
         function updateHamburgerAnimation(isOpen) {
-            const spans = navToggle.querySelectorAll('span');
-            spans.forEach((span, index) => {
-                if (isOpen) {
-                    if (index === 0) {
-                        span.style.transform = 'rotate(45deg) translate(5px, 5px)';
-                        span.style.transformOrigin = 'center';
-                    }
-                    if (index === 1) {
-                        span.style.opacity = '0';
-                        span.style.transform = 'scale(0)';
-                    }
-                    if (index === 2) {
-                        span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
-                        span.style.transformOrigin = 'center';
-                    }
-                } else {
-                    span.style.transform = 'none';
-                    span.style.opacity = '1';
-                    span.style.transformOrigin = 'center';
+            try {
+                const spans = SafeDOM.querySelectorAll('span', navToggle);
+                if (!spans || spans.length === 0) {
+                    ErrorTracker.log(new Error('Hamburger spans not found'), 'Navigation Animation', 'warning');
+                    return;
                 }
-            });
+                
+                spans.forEach((span, index) => {
+                    try {
+                        span.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                        if (isOpen) {
+                            if (index === 0) {
+                                span.style.transform = 'rotate(45deg) translate(5px, 5px)';
+                                span.style.transformOrigin = 'center';
+                            }
+                            if (index === 1) {
+                                span.style.opacity = '0';
+                                span.style.transform = 'scale(0)';
+                            }
+                            if (index === 2) {
+                                span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
+                                span.style.transformOrigin = 'center';
+                            }
+                        } else {
+                            span.style.transform = 'none';
+                            span.style.opacity = '1';
+                            span.style.transformOrigin = 'center';
+                        }
+                    } catch (spanError) {
+                        ErrorTracker.log(spanError, `Span Animation ${index}`, 'warning');
+                    }
+                });
+            } catch (error) {
+                ErrorTracker.log(error, 'Hamburger Animation', 'error');
+                // Fallback: simple class-based animation
+                try {
+                    if (isOpen) {
+                        SafeDOM.addClass(navToggle, 'open');
+                    } else {
+                        SafeDOM.removeClass(navToggle, 'open');
+                    }
+                } catch (fallbackError) {
+                    ErrorTracker.log(fallbackError, 'Animation Fallback', 'error');
+                }
+            }
         }
         
-        // Toggle menu function
+        // Toggle menu function with comprehensive error handling
         function toggleMenu(open = null) {
-            const shouldOpen = open !== null ? open : !isMenuOpen;
-            isMenuOpen = shouldOpen;
-            
-            navList.classList.toggle('active', shouldOpen);
-            navToggle.classList.toggle('active', shouldOpen);
-            navToggle.setAttribute('aria-expanded', shouldOpen.toString());
-            
-            // Enhanced hamburger animation
-            updateHamburgerAnimation(shouldOpen);
-            
-            // Prevent body scroll when menu is open
-            document.body.style.overflow = shouldOpen ? 'hidden' : '';
-            
-            // Add backdrop for mobile menu
-            if (shouldOpen) {
-                createMenuBackdrop();
-            } else {
-                removeMenuBackdrop();
-            }
-            
-            // Focus management for accessibility
-            if (shouldOpen) {
-                navList.focus();
-            } else {
-                navToggle.focus();
+            try {
+                const shouldOpen = open !== null ? open : !isMenuOpen;
+                isMenuOpen = shouldOpen;
+                
+                // Safe DOM manipulation with fallbacks
+                if (navList) {
+                    if (shouldOpen) {
+                        SafeDOM.addClass(navList, 'active');
+                    } else {
+                        SafeDOM.removeClass(navList, 'active');
+                    }
+                }
+                
+                if (navToggle) {
+                    if (shouldOpen) {
+                        SafeDOM.addClass(navToggle, 'active');
+                    } else {
+                        SafeDOM.removeClass(navToggle, 'active');
+                    }
+                    SafeDOM.setAttribute(navToggle, 'aria-expanded', shouldOpen.toString());
+                }
+                
+                // Enhanced hamburger animation
+                updateHamburgerAnimation(shouldOpen);
+                
+                // Prevent body scroll when menu is open
+                try {
+                    document.body.style.overflow = shouldOpen ? 'hidden' : '';
+                } catch (e) {
+                    ErrorTracker.log(e, 'Body Scroll Control', 'warning');
+                }
+                
+                // Add backdrop for mobile menu
+                try {
+                    if (shouldOpen) {
+                        createMenuBackdrop();
+                    } else {
+                        removeMenuBackdrop();
+                    }
+                } catch (e) {
+                    ErrorTracker.log(e, 'Menu Backdrop', 'warning');
+                }
+                
+                // Focus management for accessibility
+                try {
+                    if (shouldOpen && navList) {
+                        navList.focus();
+                    } else if (navToggle) {
+                        navToggle.focus();
+                    }
+                } catch (e) {
+                    ErrorTracker.log(e, 'Focus Management', 'warning');
+                }
+            } catch (error) {
+                ErrorTracker.log(error, 'Toggle Menu', 'error');
+                
+                // Minimal fallback - just show/hide the menu
+                try {
+                    if (navList) {
+                        navList.style.display = shouldOpen ? 'block' : 'none';
+                    }
+                } catch (fallbackError) {
+                    ErrorTracker.log(fallbackError, 'Menu Toggle Fallback', 'critical');
+                }
             }
         }
         
@@ -194,32 +672,54 @@ document.addEventListener('DOMContentLoaded', function() {
             document.mobileListenersAdded = true;
         }
         
-        // Mobile performance optimizations
+        // Mobile performance optimizations with viewport detection
         let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                // Re-enable swipe listeners if switching to mobile
-                if (window.innerWidth <= 768 && !document.mobileListenersAdded) {
+        let currentViewport = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+        
+        function handleViewportChange() {
+            const newViewport = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+            
+            if (currentViewport !== newViewport) {
+                currentViewport = newViewport;
+                
+                if (newViewport === 'mobile' && !document.mobileListenersAdded) {
+                    // Enable mobile features
                     document.addEventListener('touchstart', handleTouchStart, { passive: true });
                     document.addEventListener('touchmove', handleTouchMove, { passive: false });
                     document.addEventListener('touchend', handleTouchEnd, { passive: true });
                     document.mobileListenersAdded = true;
+                    
+                    // Add mobile-specific classes
+                    document.body.classList.add('mobile-viewport');
+                    document.body.classList.remove('desktop-viewport');
+                } else if (newViewport === 'desktop') {
+                    // Clean up mobile features
+                    if (document.mobileListenersAdded) {
+                        document.removeEventListener('touchstart', handleTouchStart);
+                        document.removeEventListener('touchmove', handleTouchMove);
+                        document.removeEventListener('touchend', handleTouchEnd);
+                        document.mobileListenersAdded = false;
+                    }
+                    
+                    // Close mobile menu
+                    if (isMenuOpen) {
+                        toggleMenu(false);
+                    }
+                    
+                    // Add desktop-specific classes
+                    document.body.classList.add('desktop-viewport');
+                    document.body.classList.remove('mobile-viewport');
                 }
-                // Remove listeners if switching to desktop
-                else if (window.innerWidth > 768 && document.mobileListenersAdded) {
-                    document.removeEventListener('touchstart', handleTouchStart);
-                    document.removeEventListener('touchmove', handleTouchMove);
-                    document.removeEventListener('touchend', handleTouchEnd);
-                    document.mobileListenersAdded = false;
-                }
-                
-                // Close menu if resizing to desktop
-                if (window.innerWidth > 768 && isMenuOpen) {
-                    toggleMenu(false);
-                }
-            }, 150);
+            }
+        }
+        
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(handleViewportChange, 150);
         });
+        
+        // Initial viewport detection
+        handleViewportChange();
         
         // Enhanced keyboard navigation
         navList.addEventListener('keydown', (e) => {
@@ -269,28 +769,87 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Mobile-specific enhancements
         if ('ontouchstart' in window) {
-            // Add haptic feedback support for supported devices
-            function triggerHapticFeedback(type = 'light') {
-                if (navigator.vibrate) {
-                    switch(type) {
-                        case 'light':
-                            navigator.vibrate(10);
-                            break;
-                        case 'medium':
-                            navigator.vibrate(25);
-                            break;
-                        case 'heavy':
-                            navigator.vibrate(50);
-                            break;
-                    }
+            // Enhanced haptic feedback with proper feature detection and user interaction requirements
+            let userHasInteracted = false;
+            let vibrationSupported = false;
+            
+            // Check vibration support with proper feature detection
+            function checkVibrationSupport() {
+                return 'vibrate' in navigator && 
+                       typeof navigator.vibrate === 'function' &&
+                       !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            }
+            
+            // Initialize vibration support after user interaction
+            function initializeVibration() {
+                if (!userHasInteracted) {
+                    vibrationSupported = checkVibrationSupport();
+                    userHasInteracted = true;
                 }
             }
             
-            // Add haptic feedback to navigation interactions
-            navToggle.addEventListener('touchstart', () => triggerHapticFeedback('light'));
-            navList.querySelectorAll('a').forEach(link => {
-                link.addEventListener('touchstart', () => triggerHapticFeedback('light'));
+            // Safe haptic feedback function with proper error handling
+            function triggerHapticFeedback(type = 'light') {
+                // Only proceed if user has interacted and vibration is supported
+                if (!userHasInteracted || !vibrationSupported) {
+                    return;
+                }
+                
+                try {
+                    // Additional runtime check for vibration API availability
+                    if (!navigator.vibrate || typeof navigator.vibrate !== 'function') {
+                        return;
+                    }
+                    
+                    let duration;
+                    switch(type) {
+                        case 'light':
+                            duration = 10;
+                            break;
+                        case 'medium':
+                            duration = 25;
+                            break;
+                        case 'heavy':
+                            duration = 50;
+                            break;
+                        default:
+                            duration = 10;
+                    }
+                    
+                    // Call vibration API with error handling
+                    navigator.vibrate(duration);
+                } catch (error) {
+                    // Silently handle vibration errors to prevent console spam
+                    console.debug('Vibration not available:', error.message);
+                    vibrationSupported = false;
+                }
+            }
+            
+            // Add user interaction detection and haptic feedback to navigation
+            navToggle.addEventListener('touchstart', (e) => {
+                initializeVibration();
+                // Small delay to ensure user interaction is registered
+                setTimeout(() => triggerHapticFeedback('light'), 10);
             });
+            
+            navList.querySelectorAll('a').forEach(link => {
+                link.addEventListener('touchstart', (e) => {
+                    initializeVibration();
+                    setTimeout(() => triggerHapticFeedback('light'), 10);
+                });
+            });
+            
+            // Listen for reduced motion preference changes
+            if (window.matchMedia) {
+                const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+                motionQuery.addListener((e) => {
+                    if (e.matches) {
+                        vibrationSupported = false;
+                    } else {
+                        vibrationSupported = checkVibrationSupport();
+                    }
+                });
+            }
         }
         
         // Double tap to close menu (additional gesture)
@@ -305,14 +864,25 @@ document.addEventListener('DOMContentLoaded', function() {
             lastTap = currentTime;
         });
         
-        // Orientation change handling
+        // Enhanced orientation change handling
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
+                // Force viewport recalculation
+                handleViewportChange();
+                
                 if (isMenuOpen) {
                     // Adjust menu position after orientation change
-                    navList.style.maxHeight = `calc(100vh - ${header.offsetHeight}px)`;
+                    const headerHeight = header.offsetHeight;
+                    const viewportHeight = window.innerHeight;
+                    navList.style.maxHeight = `calc(${viewportHeight}px - ${headerHeight}px - 2rem)`;
+                    
+                    // Re-center the menu if needed
+                    navList.scrollTop = 0;
                 }
-            }, 100);
+                
+                // Trigger resize detection for other components
+                window.dispatchEvent(new Event('resize'));
+            }, 200); // Increased delay for iOS
         });
         
         // Performance monitoring for mobile
@@ -408,40 +978,258 @@ document.addEventListener('DOMContentLoaded', function() {
     updateActiveNavigation();
     updateProgressBar();
 
-    // Copy Code Functionality
+    // Enhanced Copy Code Functionality with Robust Error Handling
     function addCopyButtons() {
-        const codeBlocks = document.querySelectorAll('.code-block pre');
-        
-        codeBlocks.forEach(block => {
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-btn';
-            copyBtn.textContent = '복사';
-            copyBtn.setAttribute('aria-label', '코드 복사');
+        try {
+            const codeBlocks = SafeDOM.querySelectorAll('.code-block pre');
             
-            copyBtn.addEventListener('click', async () => {
-                const code = block.textContent;
-                
+            if (!codeBlocks || codeBlocks.length === 0) {
+                ErrorTracker.log(new Error('No code blocks found'), 'Copy Buttons Setup', 'info');
+                return;
+            }
+            
+            codeBlocks.forEach((block, index) => {
                 try {
-                    await navigator.clipboard.writeText(code);
-                    copyBtn.textContent = '복사됨!';
-                    copyBtn.style.background = 'rgba(72, 187, 120, 0.8)';
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-btn';
+                    copyBtn.textContent = '복사';
+                    SafeDOM.setAttribute(copyBtn, 'aria-label', '코드 복사');
+                    SafeDOM.setAttribute(copyBtn, 'type', 'button');
                     
-                    setTimeout(() => {
-                        copyBtn.textContent = '복사';
-                        copyBtn.style.background = 'rgba(255,255,255,0.1)';
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy code: ', err);
-                    copyBtn.textContent = '실패';
-                    setTimeout(() => {
-                        copyBtn.textContent = '복사';
-                    }, 2000);
+                    // Enhanced click handler with multiple fallback methods
+                    SafeDOM.addEventListener(copyBtn, 'click', async () => {
+                        const code = block.textContent || block.innerText || '';
+                        
+                        if (!code.trim()) {
+                            showCopyFeedback(copyBtn, '내용 없음', 'warning');
+                            return;
+                        }
+                        
+                        // Try multiple copy methods in order of preference
+                        const copyMethods = [
+                            () => copyWithClipboardAPI(code),
+                            () => copyWithExecCommand(code),
+                            () => copyWithTempTextarea(code)
+                        ];
+                        
+                        let success = false;
+                        let lastError = null;
+                        
+                        for (const method of copyMethods) {
+                            try {
+                                await method();
+                                success = true;
+                                break;
+                            } catch (error) {
+                                lastError = error;
+                                continue;
+                            }
+                        }
+                        
+                        if (success) {
+                            showCopyFeedback(copyBtn, '복사됨!', 'success');
+                            // Track successful copy
+                            if (window.gtag) {
+                                gtag('event', 'copy_code_success', {
+                                    event_category: 'engagement',
+                                    event_label: 'code_block'
+                                });
+                            }
+                        } else {
+                            ErrorTracker.log(lastError || new Error('All copy methods failed'), 'Copy Code', 'error');
+                            showCopyFeedback(copyBtn, '복사 실패', 'error');
+                            
+                            // Show manual copy instructions as final fallback
+                            showManualCopyInstructions(code);
+                        }
+                    });
+                    
+                    // Safely add button to DOM
+                    try {
+                        if (block.parentElement) {
+                            block.parentElement.style.position = 'relative';
+                            block.parentElement.appendChild(copyBtn);
+                        }
+                    } catch (appendError) {
+                        ErrorTracker.log(appendError, `Copy Button Append ${index}`, 'warning');
+                    }
+                    
+                } catch (blockError) {
+                    ErrorTracker.log(blockError, `Copy Button Creation ${index}`, 'warning');
                 }
             });
             
-            block.parentElement.style.position = 'relative';
-            block.parentElement.appendChild(copyBtn);
-        });
+        } catch (error) {
+            ErrorTracker.log(error, 'Add Copy Buttons', 'error');
+        }
+    }
+    
+    // Modern Clipboard API method
+    async function copyWithClipboardAPI(text) {
+        if (!FeatureDetection.hasClipboardAPI()) {
+            throw new Error('Clipboard API not supported');
+        }
+        
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (error) {
+            // Handle specific clipboard errors
+            if (error.name === 'NotAllowedError') {
+                throw new Error('Clipboard access denied - user interaction required');
+            }
+            throw error;
+        }
+    }
+    
+    // Legacy execCommand method
+    function copyWithExecCommand(text) {
+        if (!document.execCommand) {
+            throw new Error('execCommand not supported');
+        }
+        
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.cssText = `
+            position: fixed;
+            top: -1000px;
+            left: -1000px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        `;
+        
+        try {
+            document.body.appendChild(textArea);
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // For mobile devices
+            
+            const successful = document.execCommand('copy');
+            if (!successful) {
+                throw new Error('execCommand copy failed');
+            }
+        } finally {
+            document.body.removeChild(textArea);
+        }
+    }
+    
+    // Temporary textarea method for older browsers
+    function copyWithTempTextarea(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.cssText = `
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            opacity: 0;
+        `;
+        
+        try {
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            // Try to trigger copy with keyboard event
+            const copyEvent = new KeyboardEvent('keydown', {
+                key: 'c',
+                ctrlKey: true,
+                bubbles: true
+            });
+            
+            document.dispatchEvent(copyEvent);
+            
+            // This method doesn't guarantee success, so we throw to try other methods
+            throw new Error('Manual copy required');
+        } finally {
+            document.body.removeChild(textArea);
+        }
+    }
+    
+    // Visual feedback for copy operations
+    function showCopyFeedback(button, message, type = 'success') {
+        const originalText = button.textContent;
+        const originalBackground = button.style.background;
+        
+        button.textContent = message;
+        
+        const colors = {
+            success: 'rgba(72, 187, 120, 0.8)',
+            error: 'rgba(245, 101, 101, 0.8)',
+            warning: 'rgba(237, 137, 54, 0.8)'
+        };
+        
+        button.style.background = colors[type] || colors.success;
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = originalBackground || 'rgba(255,255,255,0.1)';
+        }, 2000);
+    }
+    
+    // Show manual copy instructions as last resort
+    function showManualCopyInstructions(code) {
+        if (window.confirm('자동 복사가 실패했습니다. 수동으로 코드를 선택하여 복사하시겠습니까?')) {
+            // Create a modal with selectable text
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 80%;
+                max-height: 80%;
+                overflow: auto;
+            `;
+            
+            const instructions = document.createElement('p');
+            instructions.textContent = '아래 코드를 선택하고 Ctrl+C (또는 Cmd+C)를 눌러 복사하세요:';
+            
+            const codeDisplay = document.createElement('pre');
+            codeDisplay.style.cssText = `
+                background: #f1f1f1;
+                padding: 15px;
+                border-radius: 4px;
+                user-select: all;
+                overflow: auto;
+                white-space: pre-wrap;
+            `;
+            codeDisplay.textContent = code;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '닫기';
+            closeBtn.style.cssText = `
+                margin-top: 15px;
+                padding: 8px 16px;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            `;
+            
+            closeBtn.onclick = () => document.body.removeChild(modal);
+            
+            modal.appendChild(instructions);
+            modal.appendChild(codeDisplay);
+            modal.appendChild(closeBtn);
+            document.body.appendChild(modal);
+            
+            // Auto-select the code
+            try {
+                const range = document.createRange();
+                range.selectNodeContents(codeDisplay);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } catch (e) {
+                ErrorTracker.log(e, 'Manual Copy Selection', 'warning');
+            }
+        }
     }
 
     // Add copy buttons to code blocks
@@ -766,14 +1554,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Service Worker Registration (for PWA features)
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
-            });
+    window.addEventListener('load', async () => {
+        try {
+            // Try multiple paths for different deployment scenarios  
+            const basePath = window.location.pathname.replace(/\/[^\/]*$/, '') || '';
+            const swPaths = [
+                './sw.js',
+                '/sw.js', 
+                `${basePath}/sw.js`,
+                `${window.location.pathname}sw.js`
+            ];
+            let registration = null;
+            
+            for (const swPath of swPaths) {
+                try {
+                    // Check if sw.js exists at this path
+                    const response = await fetch(swPath, { method: 'HEAD' });
+                    if (response.ok) {
+                        registration = await navigator.serviceWorker.register(swPath, {
+                            scope: './'
+                        });
+                        console.log('SW registered successfully:', registration);
+                        console.log('SW path used:', swPath);
+                        break;
+                    }
+                } catch (pathError) {
+                    console.log(`SW path ${swPath} failed:`, pathError.message);
+                    continue;
+                }
+            }
+            
+            if (!registration) {
+                console.warn('SW registration failed: sw.js not found at any expected path');
+            } else {
+                // Listen for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('SW updated. New content available.');
+                        }
+                    });
+                });
+            }
+        } catch (error) {
+            console.log('SW registration failed:', error);
+        }
     });
 }
 

@@ -1,15 +1,17 @@
 // SuperClaude Blog Service Worker
 // Minimal, performant caching with offline fallback
 
-const CACHE_NAME = 'superclaude-blog-v1';
-const OFFLINE_PAGE = '/offline.html';
+const CACHE_NAME = 'superclaude-blog-v2'; // Updated version for GitHub Pages fixes
+const OFFLINE_PAGE = './offline.html';
 
 // Essential files to cache immediately
 const STATIC_CACHE_URLS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/main.js',
+  './',
+  './index.html',
+  './styles.css',
+  './script.js',
+  './favicon.ico',
+  './favicon.svg',
   OFFLINE_PAGE
 ];
 
@@ -130,7 +132,7 @@ async function networkFirst(request) {
 // Network-first with offline fallback
 async function networkFirstWithFallback(request) {
   try {
-    const networkResponse = await fetch(request);
+    const networkResponse = await fetchWithTimeout(request, 12000);
     if (networkResponse.ok) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, networkResponse.clone());

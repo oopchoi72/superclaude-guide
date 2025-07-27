@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Loading Test</title>
+</head>
+<body>
+    <h1>Script Loading Test</h1>
+    <p id="status">Testing script loading...</p>
+    
+    <script>
+        console.log('Inline script loaded successfully');
+        document.getElementById('status').textContent = 'Inline script loaded. Testing external script...';
+        
+        // Test if external script loads
+        window.addEventListener('load', function() {
+            console.log('Window load event fired');
+            
+            // Check if the external script loaded by looking for its functions
+            setTimeout(function() {
+                if (typeof window.SuperClaudeUtils !== 'undefined') {
+                    console.log('✓ External script loaded successfully');
+                    document.getElementById('status').textContent = '✓ External script loaded successfully';
+                    document.getElementById('status').style.color = 'green';
+                } else {
+                    console.log('✗ External script failed to load');
+                    document.getElementById('status').textContent = '✗ External script failed to load';
+                    document.getElementById('status').style.color = 'red';
+                }
+            }, 1000);
+        });
+        
+        // Track script load errors
+        window.addEventListener('error', function(e) {
+            console.error('Script loading error:', e);
+            if (e.target && e.target.src && e.target.src.includes('script.js')) {
+                document.getElementById('status').textContent = '✗ script.js failed to load: ' + e.message;
+                document.getElementById('status').style.color = 'red';
+            }
+        });
+    </script>
+    
+    <script src="script.js" defer></script>
+</body>
+</html>

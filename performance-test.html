@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Test - SuperClaude</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .metric {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f5f5f5;
+        }
+        .excellent { background: #d4edda; border-left: 4px solid #28a745; }
+        .good { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .poor { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .test-results {
+            margin-top: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SuperClaude Performance Test</h1>
+    <p>This page helps you measure the performance improvements made to the SuperClaude website.</p>
+    
+    <div class="test-controls">
+        <button onclick="runPerformanceTest()">Run Performance Test</button>
+        <button onclick="openDevTools()">Open DevTools Instructions</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="performanceResults" class="test-results">
+        <h2>Performance Metrics</h2>
+        <div id="lcpMetric" class="metric">
+            <strong>Largest Contentful Paint (LCP):</strong> <span id="lcpValue"><div class="loading"></div> Measuring...</span>
+            <div><small>Target: &lt;2.5s (Excellent), &lt;4s (Good), &gt;4s (Poor)</small></div>
+        </div>
+        
+        <div id="fidMetric" class="metric">
+            <strong>First Input Delay (FID):</strong> <span id="fidValue">Waiting for user interaction...</span>
+            <div><small>Target: &lt;100ms (Excellent), &lt;300ms (Good), &gt;300ms (Poor)</small></div>
+        </div>
+        
+        <div id="clsMetric" class="metric">
+            <strong>Cumulative Layout Shift (CLS):</strong> <span id="clsValue"><div class="loading"></div> Measuring...</span>
+            <div><small>Target: &lt;0.1 (Excellent), &lt;0.25 (Good), &gt;0.25 (Poor)</small></div>
+        </div>
+        
+        <div id="fcpMetric" class="metric">
+            <strong>First Contentful Paint (FCP):</strong> <span id="fcpValue"><div class="loading"></div> Measuring...</span>
+            <div><small>Target: &lt;1.8s (Excellent), &lt;3s (Good), &gt;3s (Poor)</small></div>
+        </div>
+        
+        <div id="ttfbMetric" class="metric">
+            <strong>Time to First Byte (TTFB):</strong> <span id="ttfbValue"><div class="loading"></div> Measuring...</span>
+            <div><small>Target: &lt;800ms (Excellent), &lt;1.8s (Good), &gt;1.8s (Poor)</small></div>
+        </div>
+    </div>
+    
+    <div class="test-iframe">
+        <h2>Test the Optimized Page</h2>
+        <p>The iframe below loads the optimized SuperClaude page. Performance metrics will be captured automatically.</p>
+        <iframe id="testFrame" src="index.html"></iframe>
+    </div>
+    
+    <div id="devToolsInstructions" style="display: none;">
+        <h2>Manual Testing with DevTools</h2>
+        <ol>
+            <li>Open Chrome DevTools (F12)</li>
+            <li>Go to the Lighthouse tab</li>
+            <li>Click "Generate report" with Performance category selected</li>
+            <li>Compare the LCP score with the baseline (488ms)</li>
+            <li>Check the Network tab to verify resource loading optimization</li>
+        </ol>
+        <p><strong>Expected improvements:</strong></p>
+        <ul>
+            <li>LCP should be significantly lower than 488ms</li>
+            <li>Critical CSS should be inlined</li>
+            <li>Fonts should load with proper display: swap</li>
+            <li>JavaScript should be deferred/async</li>
+            <li>External resources should be preconnected</li>
+        </ul>
+    </div>
+
+    <script>
+        let performanceData = {};
+        
+        function runPerformanceTest() {
+            // Reset results
+            clearResults();
+            
+            // Reload the iframe to get fresh measurements
+            const iframe = document.getElementById('testFrame');
+            iframe.src = iframe.src;
+            
+            // Start measuring
+            measurePerformance();
+        }
+        
+        function clearResults() {
+            document.getElementById('lcpValue').innerHTML = '<div class="loading"></div> Measuring...';
+            document.getElementById('fidValue').textContent = 'Waiting for user interaction...';
+            document.getElementById('clsValue').innerHTML = '<div class="loading"></div> Measuring...';
+            document.getElementById('fcpValue').innerHTML = '<div class="loading"></div> Measuring...';
+            document.getElementById('ttfbValue').innerHTML = '<div class="loading"></div> Measuring...';
+            
+            // Reset metric classes
+            ['lcpMetric', 'fidMetric', 'clsMetric', 'fcpMetric', 'ttfbMetric'].forEach(id => {
+                const element = document.getElementById(id);
+                element.className = 'metric';
+            });
+        }
+        
+        function measurePerformance() {
+            if (!('PerformanceObserver' in window)) {
+                alert('PerformanceObserver not supported in this browser');
+                return;
+            }
+            
+            // Measure LCP
+            const lcpObserver = new PerformanceObserver((list) => {
+                const entries = list.getEntries();
+                const lastEntry = entries[entries.length - 1];
+                const lcp = Math.round(lastEntry.startTime);
+                
+                document.getElementById('lcpValue').textContent = lcp + 'ms';
+                updateMetricClass('lcpMetric', lcp, [2500, 4000]);
+                
+                performanceData.lcp = lcp;
+            });
+            lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+            
+            // Measure FID
+            const fidObserver = new PerformanceObserver((list) => {
+                const entries = list.getEntries();
+                const firstEntry = entries[0];
+                const fid = Math.round(firstEntry.processingStart - firstEntry.startTime);
+                
+                document.getElementById('fidValue').textContent = fid + 'ms';
+                updateMetricClass('fidMetric', fid, [100, 300]);
+                
+                performanceData.fid = fid;
+            });
+            fidObserver.observe({ entryTypes: ['first-input'] });
+            
+            // Measure CLS
+            let clsValue = 0;
+            const clsObserver = new PerformanceObserver((list) => {
+                const entries = list.getEntries();
+                entries.forEach((entry) => {
+                    if (!entry.hadRecentInput) {
+                        clsValue += entry.value;
+                    }
+                });
+                
+                document.getElementById('clsValue').textContent = clsValue.toFixed(4);
+                updateMetricClass('clsMetric', clsValue, [0.1, 0.25]);
+                
+                performanceData.cls = clsValue;
+            });
+            clsObserver.observe({ entryTypes: ['layout-shift'] });
+            
+            // Measure FCP and TTFB using Navigation Timing
+            window.addEventListener('load', () => {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                
+                // FCP
+                const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0];
+                if (fcpEntry) {
+                    const fcp = Math.round(fcpEntry.startTime);
+                    document.getElementById('fcpValue').textContent = fcp + 'ms';
+                    updateMetricClass('fcpMetric', fcp, [1800, 3000]);
+                    performanceData.fcp = fcp;
+                }
+                
+                // TTFB
+                const ttfb = Math.round(perfData.responseStart - perfData.requestStart);
+                document.getElementById('ttfbValue').textContent = ttfb + 'ms';
+                updateMetricClass('ttfbMetric', ttfb, [800, 1800]);
+                performanceData.ttfb = ttfb;
+                
+                // Log summary
+                setTimeout(() => {
+                    console.log('Performance Test Results:', performanceData);
+                    showSummary();
+                }, 1000);
+            });
+        }
+        
+        function updateMetricClass(elementId, value, thresholds) {
+            const element = document.getElementById(elementId);
+            element.className = 'metric';
+            
+            if (value < thresholds[0]) {
+                element.classList.add('excellent');
+            } else if (value < thresholds[1]) {
+                element.classList.add('good');
+            } else {
+                element.classList.add('poor');
+            }
+        }
+        
+        function showSummary() {
+            const improvements = [];
+            
+            if (performanceData.lcp && performanceData.lcp < 488) {
+                const improvement = 488 - performanceData.lcp;
+                improvements.push(`LCP improved by ${improvement}ms (${((improvement/488)*100).toFixed(1)}%)`);
+            }
+            
+            if (improvements.length > 0) {
+                alert('Performance Improvements:\n' + improvements.join('\n'));
+            }
+        }
+        
+        function openDevTools() {
+            const instructions = document.getElementById('devToolsInstructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Auto-start measurement when page loads
+        window.addEventListener('load', () => {
+            setTimeout(measurePerformance, 1000);
+        });
+    </script>
+</body>
+</html>

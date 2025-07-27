@@ -1,0 +1,54 @@
+# GitHub Pages Configuration for SuperClaude Guide
+
+# Site settings for GitHub Pages
+title: "SuperClaude 사용법 가이드"
+description: "Claude Code SuperClaude 프레임워크의 완벽한 사용법 가이드"
+baseurl: "" # Leave empty for GitHub Pages user/org sites, or "/repository-name" for project sites
+url: "https://oopchoi72.github.io" # Your GitHub Pages domain
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - LICENSE
+  - node_modules
+  - .gitignore
+  - server.log
+
+# Include files that start with underscores or other special files
+include:
+  - _redirects
+  - sw.js
+
+# Plugins
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+
+# SEO and social settings
+author: "SuperClaude Framework"
+twitter:
+  card: summary_large_image
+social:
+  name: SuperClaude Framework
+  links:
+    - https://github.com/oopchoi72/superclaude-guide
+
+# GitHub Pages specific settings
+repository: oopchoi72/superclaude-guide
+github_username: oopchoi72
+
+# Timezone
+timezone: Asia/Seoul
+
+# Language
+lang: ko-KR
+
+# Force HTTPS (GitHub Pages default)
+enforce_ssl: oopchoi72.github.io

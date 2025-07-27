@@ -5,6 +5,25 @@
     box-sizing: border-box;
 }
 
+/* Critical Mobile Rendering Optimizations */
+html {
+    /* Force hardware acceleration for smoother rendering */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    /* Improve text rendering on mobile */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Enable smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Optimize for mobile performance */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent horizontal overflow */
+    overflow-x: hidden;
+    width: 100%;
+}
+
 html {
     scroll-behavior: smooth;
 }
@@ -15,12 +34,31 @@ body {
     line-height: clamp(1.5, 0.5vw + 1.4, 1.6);
     color: #2d3748;
     background-color: #f7fafc;
+    /* Enhanced mobile text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: always;
+    text-rendering: optimizeLegibility;
+    /* Prevent content shifting */
+    width: 100%;
+    overflow-x: hidden;
+    /* Optimize mobile performance */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    /* Improve mobile text clarity */
+    -webkit-text-stroke: 0.01em transparent;
+    font-weight: 400;
+    font-variant-ligatures: none;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 clamp(0.75rem, 4vw, 2rem);
+    /* Ensure containers don't overflow on mobile */
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 /* Typography */
@@ -28,6 +66,17 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     line-height: 1.3;
     margin-bottom: 1rem;
+    /* Enhanced mobile text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-smooth: always;
+    /* Prevent text overflow on mobile */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
 }
 
 h1 { font-size: 2.5rem; }
@@ -39,6 +88,15 @@ h6 { font-size: 1rem; }
 
 p {
     margin-bottom: 1rem;
+    /* Enhanced mobile text rendering */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Improve readability on mobile */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
 }
 
 a {
@@ -235,6 +293,10 @@ a:hover {
     padding: clamp(1rem, 4vw, 2rem) 0;
     width: 100%;
     overflow-x: hidden;
+    /* Force GPU acceleration for smoother scrolling */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: scroll-position;
 }
 
 .content-wrapper {
@@ -245,6 +307,9 @@ a:hover {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    /* Ensure content doesn't overflow */
+    overflow-x: hidden;
+    contain: layout style;
 }
 
 /* Sidebar */
@@ -327,6 +392,15 @@ a:hover {
     padding: clamp(1.5rem, 4vw, 2rem);
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     border: 1px solid #e2e8f0;
+    /* Prevent content overflow */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    /* Optimize for mobile performance */
+    contain: layout style;
+    will-change: auto;
 }
 
 .section {
@@ -1428,6 +1502,29 @@ table caption {
     overflow-wrap: break-word;
 }
 
+/* Prevent horizontal scroll on mobile */
+body {
+    overflow-x: hidden;
+}
+
+.container, .content-wrapper, .content, .sidebar-content {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Fix potential layout shift issues */
+img, video, iframe {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+pre, code {
+    max-width: 100%;
+    overflow-x: auto;
+    word-break: break-word;
+}
+
 /* Improve table responsiveness */
 .command-reference-table {
     overflow-x: auto;
@@ -1484,27 +1581,66 @@ a, button, .nav-toggle, .sidebar-nav a {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Responsive Design */
+/* Mobile Layout Optimization */
 @media (max-width: 1024px) {
     .content-wrapper {
         grid-template-columns: 240px 1fr;
         gap: 1.5rem;
+        /* Prevent horizontal scroll */
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
     }
     
     .sidebar {
         top: 100px;
+        /* Improve mobile sidebar rendering */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+    
+    /* Enhance content clarity on tablets */
+    .content {
+        padding: clamp(1rem, 3vw, 1.5rem);
+        border-radius: 0.5rem;
     }
 }
 
 @media (max-width: 768px) {
+    /* Critical Mobile Viewport Fix */
+    html {
+        /* Prevent zoom on double-tap */
+        touch-action: manipulation;
+        /* Ensure stable viewport */
+        -webkit-text-size-adjust: 100%;
+        /* Force hardware acceleration */
+        -webkit-transform: translate3d(0,0,0);
+        transform: translate3d(0,0,0);
+    }
+    
     /* Enhanced mobile typography and spacing */
     body {
-        font-size: 0.9rem;
+        font-size: 16px; /* Fixed size prevents zoom issues */
         line-height: 1.5;
+        /* Improve mobile text clarity */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-smooth: always;
+        text-rendering: optimizeLegibility;
+        /* Prevent horizontal scroll */
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+        position: relative;
     }
     
     .container {
         padding: 0 1rem;
+        /* Ensure container doesn't exceed viewport */
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+        overflow-x: hidden;
     }
     
     .nav-toggle {
@@ -1529,6 +1665,7 @@ a, button, .nav-toggle, .sidebar-nav a {
         position: absolute;
         top: 100%;
         left: 0;
+        right: 0;
         width: 100%;
         background: #667eea;
         flex-direction: column;
@@ -1543,6 +1680,16 @@ a, button, .nav-toggle, .sidebar-nav a {
         max-height: calc(100vh - 100px);
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        /* Ensure navigation renders clearly */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        will-change: transform, opacity;
+        /* Prevent text blurring on mobile */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Ensure full width on mobile */
+        margin: 0;
+        box-sizing: border-box;
     }
     
     .nav-list.active {
@@ -1586,7 +1733,7 @@ a, button, .nav-toggle, .sidebar-nav a {
     .nav-list a {
         display: flex;
         align-items: center;
-        padding: 0.875rem;
+        padding: 1rem;
         border-radius: 0.5rem;
         min-height: 48px;
         text-decoration: none;
@@ -1594,6 +1741,16 @@ a, button, .nav-toggle, .sidebar-nav a {
         position: relative;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
+        /* Enhance mobile text clarity */
+        font-size: 16px;
+        font-weight: 500;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        /* Improve touch responsiveness */
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
     }
     
     .nav-list a:hover,
@@ -1651,17 +1808,33 @@ a, button, .nav-toggle, .sidebar-nav a {
     }
     
     .hero-content h2 {
-        font-size: 1.75rem;
-        line-height: 1.1;
+        font-size: clamp(1.5rem, 4vw, 1.75rem);
+        line-height: 1.2;
         margin-bottom: 1rem;
         text-align: center;
+        /* Enhance mobile text clarity */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 700;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .hero-content p {
-        font-size: 1rem;
-        line-height: 1.4;
+        font-size: clamp(14px, 3vw, 16px);
+        line-height: 1.5;
         margin-bottom: 1.5rem;
         text-align: center;
+        /* Enhance mobile readability */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 90%;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .hero-actions {
@@ -1675,9 +1848,24 @@ a, button, .nav-toggle, .sidebar-nav a {
         width: 100%;
         max-width: 280px;
         text-align: center;
-        font-size: 1rem;
+        font-size: 16px; /* Fixed size for better mobile clarity */
         padding: 1rem 1.5rem;
         min-height: 48px;
+        /* Enhance button clarity on mobile */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        /* Improve touch responsiveness */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        /* Force hardware acceleration */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
     }
     
     .hero-stats {
@@ -1714,11 +1902,22 @@ a, button, .nav-toggle, .sidebar-nav a {
     }
     
     .content {
-        padding: 1.5rem;
+        padding: 1rem;
         border-radius: 0.5rem;
         margin-bottom: 1rem;
-        font-size: 0.9rem;
-        line-height: 1.5;
+        font-size: 16px; /* Fixed size for mobile clarity */
+        line-height: 1.6;
+        /* Improve mobile rendering */
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        word-wrap: break-word;
+        /* Enhanced text clarity on mobile */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        contain: layout style paint;
     }
     
     .feature-grid,
@@ -1749,14 +1948,30 @@ a, button, .nav-toggle, .sidebar-nav a {
     
     /* Enhanced table mobile styles */
     .command-reference-table {
-        font-size: 0.875rem;
-        border-radius: 0.5rem;
+        font-size: 14px; /* Fixed size for mobile clarity */
+        border-radius: 0;
         overflow: hidden;
+        margin: 1rem -1rem;
+        width: calc(100% + 2rem);
+        /* Improve mobile table rendering */
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        /* Force hardware acceleration */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
     }
     
     .command-reference-table th,
     .command-reference-table td {
         padding: 0.75rem 0.5rem;
+        /* Improve mobile text rendering in tables */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-size: 14px;
+        line-height: 1.4;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
     
     /* Show table cards by default on mobile */
@@ -1794,25 +2009,52 @@ a, button, .nav-toggle, .sidebar-nav a {
     
     /* Mobile Code Block Improvements */
     .code-block {
-        margin: 0.75rem 0;
-        padding: 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.8rem;
+        margin: 0.75rem -1rem;
+        padding: 1rem;
+        border-radius: 0;
+        font-size: 14px; /* Fixed size for mobile clarity */
         /* Enhance touch scrolling */
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
+        /* Improve mobile code rendering */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeSpeed;
+        /* Force hardware acceleration */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        /* Ensure code doesn't break layout */
+        width: calc(100% + 2rem);
+        max-width: calc(100vw - 2rem);
+        box-sizing: border-box;
     }
     
     .code-block code {
-        font-size: 0.8rem;
-        line-height: 1.4;
+        font-size: 14px; /* Fixed size for consistency */
+        line-height: 1.5;
+        /* Enhance mobile code readability */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeSpeed;
+        font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Consolas', 'Courier New', monospace;
+        font-weight: 400;
     }
     
     .code-block pre {
-        font-size: 0.8rem;
+        font-size: 14px; /* Fixed size for consistency */
         /* Add padding for easier scrolling */
         padding-right: 1rem;
+        /* Improve mobile pre rendering */
+        white-space: pre;
+        word-wrap: normal;
+        overflow-wrap: normal;
+        word-break: normal;
+        /* Force consistent rendering */
+        font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Consolas', 'Courier New', monospace;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
     
     /* Ensure scrollbar is visible on mobile */
@@ -1953,11 +2195,53 @@ a, button, .nav-toggle, .sidebar-nav a {
     }
 }
 
+/* Critical Mobile Rendering Fixes for All Small Screens */
+@media screen and (max-width: 768px) {
+    /* Force stable rendering on all mobile devices */
+    * {
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        /* Prevent layout shifts */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+    
+    /* Improve input rendering on mobile */
+    input, textarea, select {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Force sharp image rendering */
+    img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+        -ms-interpolation-mode: nearest-neighbor;
+    }
+    
+    /* Improve icon and emoji rendering */
+    .feature-icon, .persona-icon {
+        text-rendering: optimizeSpeed;
+        -webkit-font-smoothing: antialiased;
+        font-size: 2rem !important;
+    }
+}
+
 /* Ultra-small screens (320px and below) */
 @media (max-width: 320px) {
     body {
-        font-size: 0.8rem;
-        line-height: 1.4;
+        font-size: 16px !important; /* Fixed size prevents scaling issues */
+        line-height: 1.5;
+        /* Critical rendering optimizations */
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        font-smooth: always;
     }
     
     .container {
@@ -1975,15 +2259,26 @@ a, button, .nav-toggle, .sidebar-nav a {
     }
     
     .hero-content p {
-        font-size: 0.8rem;
-        line-height: 1.3;
+        font-size: 14px;
+        line-height: 1.4;
         margin-bottom: 0.75rem;
+        /* Enhanced readability on tiny screens */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        word-spacing: 0.1em;
     }
     
     .content {
         padding: 0.75rem;
-        font-size: 0.8rem;
-        line-height: 1.3;
+        font-size: 15px; /* Slightly larger for better readability */
+        line-height: 1.5;
+        /* Enhanced text clarity */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        word-spacing: 0.05em;
+        letter-spacing: 0.01em;
     }
     
     h1 { font-size: 1.25rem; line-height: 1.1; }
@@ -2168,6 +2463,41 @@ textarea,
 [role="button"], 
 [tabindex]:not([tabindex="-1"]) {
     min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Specific touch target fixes */
+.command-item,
+.flag-item,
+.flag-row {
+    min-height: 48px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.step {
+    min-height: 48px;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.condition-item,
+.strategy-card {
+    min-height: 48px;
+    padding: 0.875rem;
+    cursor: pointer;
+    touch-action: manipulation;
 }
 
 /* Exception for inline text links within content */
@@ -2199,43 +2529,74 @@ p a, li a, span a {
 @media (hover: none) and (pointer: coarse) {
     /* Larger touch targets for actual touch devices */
     .btn {
-        min-height: 48px;
-        min-width: 48px;
-        padding: 1.125rem 2rem;
+        min-height: 52px;
+        min-width: 52px;
+        padding: 1.25rem 2rem;
+        font-size: 1rem;
+        line-height: 1.4;
     }
     
     .nav-list a {
-        min-height: 48px;
-        padding: 1rem;
+        min-height: 52px;
+        padding: 1.125rem;
+        font-size: 1rem;
     }
     
     .sidebar-nav a {
-        min-height: 48px;
-        padding: 1rem 0.75rem;
+        min-height: 52px;
+        padding: 1.125rem 0.875rem;
+        font-size: 0.9rem;
     }
     
     .copy-btn {
-        min-height: 48px;
-        min-width: 48px;
+        min-height: 52px;
+        min-width: 52px;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
     }
     
     .nav-toggle {
-        min-height: 48px;
-        min-width: 48px;
+        min-height: 52px;
+        min-width: 52px;
+        padding: 1.125rem;
+    }
+    
+    .command-item,
+    .flag-item,
+    .flag-row {
+        min-height: 56px;
         padding: 1rem;
+        margin-bottom: 0.875rem;
+    }
+    
+    .step {
+        min-height: 56px;
+        padding: 1.125rem;
     }
     
     /* Increase spacing between touch targets on touch devices */
     .nav-list li {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.625rem;
     }
     
     .sidebar-nav li {
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.375rem;
     }
     
-    .command-item, .flag-item {
-        margin-bottom: 0.75rem;
+    /* Feature and persona cards */
+    .feature-card,
+    .persona-card {
+        min-height: 56px;
+        padding: 1.25rem;
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+    
+    /* Better spacing for small interactive elements */
+    .condition-item,
+    .strategy-card {
+        min-height: 56px;
+        padding: 1.125rem;
     }
 }
 
@@ -2405,6 +2766,20 @@ button:focus {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 1.5rem;
     }
+    
+    /* Better tablet sidebar */
+    .sidebar {
+        top: 90px;
+    }
+    
+    .sidebar-content {
+        padding: 1.25rem;
+    }
+    
+    /* Optimize content wrapper for tablets */
+    .content-wrapper {
+        gap: 1.75rem;
+    }
 }
 
 /* Enhanced mobile fixes for content overflow */
@@ -2416,8 +2791,18 @@ button:focus {
     .persona-card {
         width: 100%;
         box-sizing: border-box;
-        overflow-x: auto;
+        overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Fix text overflow in containers */
+    .feature-card p,
+    .persona-card p,
+    .command-item span,
+    .flag-item span {
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
     }
     
     /* Improve grid spacing on mobile */
@@ -2447,12 +2832,36 @@ button:focus {
     .code-block {
         margin: 1rem -1rem;
         border-radius: 0;
+        max-width: calc(100vw - 2rem);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        /* Add visual scroll indicators */
+        scrollbar-width: thin;
+        scrollbar-color: #4a5568 #2d3748;
+    }
+    
+    .code-block::-webkit-scrollbar {
+        height: 12px;
+    }
+    
+    .code-block::-webkit-scrollbar-track {
+        background: #2d3748;
+        border-radius: 6px;
+    }
+    
+    .code-block::-webkit-scrollbar-thumb {
+        background: #4a5568;
+        border-radius: 6px;
+        border: 2px solid #2d3748;
     }
     
     /* Improve mobile tables */
     .command-reference-table {
         margin: 1rem -1rem;
         border-radius: 0;
+        max-width: calc(100vw - 2rem);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .command-reference-table th,
@@ -2460,6 +2869,13 @@ button:focus {
         padding: 0.75rem 0.5rem;
         font-size: 0.85rem;
         white-space: nowrap;
+        min-width: 120px;
+    }
+    
+    /* Ensure table cells don't break layout */
+    .command-reference-table table {
+        min-width: 600px;
+        width: auto;
     }
 }
 
@@ -2527,10 +2943,31 @@ button:focus {
     
     .hero-actions {
         margin-bottom: 1rem;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .btn {
+        max-width: 200px;
+        min-height: 44px;
+        padding: 0.75rem 1.5rem;
     }
     
     .hero-stats {
         grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
+    }
+    
+    /* Optimize navigation for landscape */
+    .nav-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        max-height: calc(100vh - 80px);
+    }
+    
+    .nav-list a {
+        min-width: 120px;
+        padding: 0.5rem 1rem;
     }
 }

@@ -2,12 +2,274 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover, shrink-to-fit=no">
     <title>SuperClaude 사용법 가이드 | 완벽한 AI 개발 도구 활용하기</title>
     <meta name="description" content="SuperClaude 프레임워크의 완벽한 사용법을 배워보세요. 명령어, 플래그, 페르소나 시스템부터 고급 기능까지 모든 것을 다룹니다.">
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <!-- Mobile optimization meta tags -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SuperClaude">
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Performance optimizations -->
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Optimize rendering -->
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+    
+    <!-- GitHub Pages path helper -->
+    <script>
+        // Set base path for GitHub Pages compatibility
+        window.basePath = window.location.pathname.endsWith('/') 
+            ? window.location.pathname 
+            : window.location.pathname + '/';
+        
+        // Handle GitHub Pages project site paths
+        if (window.location.hostname.includes('github.io')) {
+            const pathParts = window.location.pathname.split('/').filter(p => p);
+            
+            // If we're in a project subdirectory, set the base path accordingly
+            if (pathParts.length > 0 && pathParts[0] !== 'superclaude-guide') {
+                // This might be the repository name
+                window.basePath = '/' + pathParts[0] + '/';
+            } else if (pathParts.length > 0 && pathParts[0] === 'superclaude-guide') {
+                window.basePath = '/superclaude-guide/';
+            }
+        }
+        
+        console.log('Base path set to:', window.basePath);
+    </script>
+    
+    <!-- Critical CSS for above-the-fold content -->
+    <style>
+        /* Critical CSS - Reset and base styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: clamp(0.9rem, 2vw + 0.125rem, 1rem);
+            line-height: clamp(1.5, 0.5vw + 1.4, 1.6);
+            color: #2d3748;
+            background-color: #f7fafc;
+            font-display: swap;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(0.75rem, 4vw, 2rem);
+        }
+        
+        /* Header critical styles */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0;
+            color: white;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        .tagline {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            display: block;
+            margin-top: -0.25rem;
+        }
+        
+        /* Navigation critical styles */
+        .nav-toggle {
+            display: none;
+            flex-direction: column;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.75rem;
+            min-width: 44px;
+            min-height: 44px;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        .nav-toggle span {
+            width: 24px;
+            height: 2px;
+            background: white;
+            margin: 2px 0;
+            transition: 0.3s;
+        }
+        .nav-list {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        .nav-list a {
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        
+        /* Hero section critical styles */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        .hero-content h2 {
+            font-size: clamp(1.75rem, 5vw + 1rem, 3rem);
+            line-height: clamp(1.1, 0.5vw + 1, 1.2);
+            margin-bottom: clamp(1rem, 3vw, 1.5rem);
+            font-weight: 700;
+        }
+        .hero-content p {
+            font-size: clamp(1rem, 3vw + 0.25rem, 1.25rem);
+            line-height: clamp(1.4, 0.5vw + 1.3, 1.5);
+            margin-bottom: clamp(1.5rem, 4vw, 2rem);
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Button critical styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(0.75rem, 2vw + 0.25rem, 1rem) clamp(1.5rem, 4vw + 0.5rem, 2rem);
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: clamp(0.875rem, 2vw + 0.125rem, 1rem);
+            line-height: 1.4;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            min-height: 44px;
+            min-width: 44px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border-color: white;
+        }
+        
+        /* Hero actions and stats */
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .stat-number {
+            display: block;
+            font-size: clamp(1.5rem, 4vw + 0.5rem, 2rem);
+            font-weight: 700;
+            margin-bottom: clamp(0.25rem, 1vw, 0.5rem);
+            line-height: 1.1;
+        }
+        .stat-label {
+            font-size: clamp(0.75rem, 2vw + 0.125rem, 0.875rem);
+            line-height: 1.3;
+            opacity: 0.9;
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+        }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.5rem; }
+        
+        /* Mobile critical styles */
+        @media (max-width: 768px) {
+            .nav-toggle { display: flex; }
+            .nav-list {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: #667eea;
+                flex-direction: column;
+                padding: 1rem;
+                display: none;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                border-radius: 0 0 0.75rem 0.75rem;
+                z-index: 1000;
+            }
+            .nav-list.active { display: flex; }
+            .hero { padding: 2rem 0; }
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 2rem;
+            }
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                text-align: center;
+            }
+        }
+    </style>
+    
+    <!-- Preload critical resources with font-display swap and error handling -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" onerror="this.onerror=null;document.head.appendChild(document.createElement('style')).textContent='body,html{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif !important;}';console.log('🔤 Using system font fallback')">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
+    
+    <!-- Load non-critical CSS asynchronously -->
+    <link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles.css"></noscript>
+    <!-- Load syntax highlighting CSS asynchronously with fallback -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" onerror="this.onerror=null;document.head.appendChild(document.createElement('style')).textContent='.code-block,.code-block pre,.code-block code{background:#2d3748 !important;color:#e2e8f0 !important;padding:1rem;border-radius:0.5rem;overflow-x:auto;font-family:Monaco,Consolas,Liberation Mono,Courier New,monospace;}.fallback-highlighting{border-left:3px solid #667eea;}';console.log('🎨 Using fallback syntax highlighting CSS')">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"></noscript>
 </head>
 <body>
     <!-- Header -->
@@ -726,7 +988,8 @@ claude --version</code></pre>
                         <div id="command-reference" class="subsection">
                             <h3>명령어 레퍼런스</h3>
                             
-                            <div class="command-reference-table">
+                            <!-- Desktop Table View -->
+                            <div class="table-responsive command-reference-table">
                                 <table>
                                     <thead>
                                         <tr>
@@ -799,6 +1062,199 @@ claude --version</code></pre>
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                            
+                            <!-- Mobile Card View -->
+                            <div class="table-cards">
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/analyze</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">분석</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">다차원 코드 및 시스템 분석</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">✅</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/build</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">개발</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">프로젝트 빌드 및 프레임워크 감지</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">✅</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/implement</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">개발</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">기능 및 코드 구현</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">✅</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/improve</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">품질</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">증거 기반 코드 개선</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">✅</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/design</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">설계</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">시스템 및 컴포넌트 설계</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">✅</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/task</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">계획</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">장기 프로젝트 관리</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">✅</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/troubleshoot</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">분석</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">문제 조사 및 해결</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">❌</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/test</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">품질</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">테스팅 워크플로우</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">❌</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/document</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">문서화</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">문서 생성 및 관리</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">❌</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-card">
+                                    <div class="card-row">
+                                        <span class="card-label">명령어</span>
+                                        <span class="card-value"><code>/git</code></span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">카테고리</span>
+                                        <span class="card-value">버전관리</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">설명</span>
+                                        <span class="card-value">Git 워크플로우 지원</span>
+                                    </div>
+                                    <div class="card-row">
+                                        <span class="card-label">Wave 지원</span>
+                                        <span class="card-value">❌</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -955,7 +1411,7 @@ claude --version</code></pre>
                         <ul>
                             <li><a href="https://github.com/anthropics/claude-code/issues">이슈 리포트</a></li>
                             <li><a href="#troubleshooting">트러블슈팅</a></li>
-                            <li><a href="/help">도움말</a></li>
+                            <li><a href="#troubleshooting">도움말</a></li>
                         </ul>
                     </div>
                 </div>
@@ -966,9 +1422,202 @@ claude --version</code></pre>
         </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-    <script src="script.js"></script>
+    <!-- Performance monitoring and optimization script -->
+    <script>
+        // Debug script loading
+        console.log('🔍 Debug: Inline script loaded');
+        
+        // Track script loading errors
+        window.addEventListener('error', function(e) {
+            if (e.target && e.target.src && e.target.src.includes('script.js')) {
+                console.error('❌ script.js failed to load:', e);
+                console.error('Error details:', {
+                    message: e.message,
+                    filename: e.filename,
+                    lineno: e.lineno,
+                    colno: e.colno,
+                    target: e.target.src
+                });
+                
+                // Try to provide helpful debugging info
+                fetch('./script.js')
+                    .then(response => {
+                        console.log('🔍 Fetch test result:', response.status, response.statusText);
+                        return response.text();
+                    })
+                    .then(text => {
+                        console.log('🔍 Script size:', text.length, 'characters');
+                        console.log('🔍 Script starts with:', text.substring(0, 100));
+                    })
+                    .catch(err => {
+                        console.error('🔍 Fetch test failed:', err);
+                    });
+            }
+        });
+        
+        // Track successful script loading
+        window.addEventListener('load', function() {
+            console.log('🔍 Page load complete');
+            setTimeout(function() {
+                if (typeof window.SuperClaudeUtils !== 'undefined') {
+                    console.log('✅ script.js loaded successfully');
+                } else {
+                    console.warn('⚠️ script.js may not have loaded properly');
+                }
+            }, 500);
+        });
+        
+        // Performance monitoring
+        if ('PerformanceObserver' in window) {
+            const observer = new PerformanceObserver((list) => {
+                list.getEntries().forEach((entry) => {
+                    if (entry.entryType === 'largest-contentful-paint') {
+                        console.log('🎯 LCP:', Math.round(entry.startTime) + 'ms');
+                        
+                        // Track improvement
+                        if (entry.startTime < 2500) {
+                            console.log('✅ LCP: Excellent (<2.5s)');
+                        } else if (entry.startTime < 4000) {
+                            console.log('⚠️ LCP: Needs improvement (2.5-4s)');
+                        } else {
+                            console.log('❌ LCP: Poor (>4s)');
+                        }
+                    }
+                    
+                    if (entry.entryType === 'first-input-delay') {
+                        console.log('⚡ FID:', Math.round(entry.processingStart - entry.startTime) + 'ms');
+                    }
+                    
+                    if (entry.entryType === 'layout-shift') {
+                        console.log('📐 CLS:', entry.value.toFixed(4));
+                    }
+                });
+            });
+            
+            observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input-delay', 'layout-shift'] });
+        }
+        
+        // Critical resource loading optimization
+        const loadScript = (src, async = true, defer = true, fallback = null, retries = 2) => {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                
+                function tryLoad() {
+                    attempts++;
+                    const script = document.createElement('script');
+                    script.src = src + (attempts > 1 ? '?retry=' + attempts : '');
+                    if (async) script.async = true;
+                    if (defer) script.defer = true;
+                    
+                    // 15 second timeout for script loading
+                    const timeoutId = setTimeout(() => {
+                        console.warn(`Script timeout: ${src}`);
+                        script.onerror();
+                    }, 15000);
+                    
+                    script.onload = () => {
+                        clearTimeout(timeoutId);
+                        console.log(`✅ Script loaded: ${src}`);
+                        resolve(script);
+                    };
+                    
+                    script.onerror = () => {
+                        clearTimeout(timeoutId);
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+                        
+                        if (attempts < retries) {
+                            console.warn(`⚠️  Retrying ${src} (attempt ${attempts + 1}/${retries})`);
+                            setTimeout(tryLoad, 1000 * attempts); // Exponential backoff
+                        } else {
+                            console.error(`❌ Failed to load ${src} after ${retries} attempts`);
+                            if (fallback) {
+                                console.log(`🔄 Executing fallback for ${src}`);
+                                fallback();
+                            }
+                            reject(new Error(`Failed to load ${src}`));
+                        }
+                    };
+                    
+                    document.head.appendChild(script);
+                }
+                
+                tryLoad();
+            });
+        };
+        
+        // Mobile-specific optimizations
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isSlowConnection = navigator.connection && (navigator.connection.effectiveType === 'slow-2g' || navigator.connection.effectiveType === '2g');
+        
+        // Prism.js fallback function
+        const prismFallback = () => {
+            console.log('🎨 Setting up fallback syntax highlighting...');
+            window.Prism = window.Prism || {
+                highlightAll: () => {
+                    document.querySelectorAll('pre code').forEach(block => {
+                        block.style.display = 'block';
+                        block.style.whiteSpace = 'pre-wrap';
+                        block.style.fontFamily = 'Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+                        block.style.lineHeight = '1.5';
+                        block.classList.add('fallback-highlighting');
+                    });
+                    console.log('✅ Fallback syntax highlighting applied');
+                }
+            };
+            // Apply fallback highlighting immediately
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', window.Prism.highlightAll);
+            } else {
+                window.Prism.highlightAll();
+            }
+        };
+        
+        // Adaptive loading based on device and connection
+        if (isMobile && isSlowConnection) {
+            console.log('📱 Mobile + Slow connection detected - Optimizing...');
+            // Defer non-critical resources further
+            setTimeout(() => {
+                loadScript('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js', true, true, prismFallback)
+                    .then(() => {
+                        return loadScript('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js', true, true);
+                    })
+                    .catch(err => console.warn('Prism components loading failed:', err));
+            }, 3000);
+        } else {
+            // Load non-critical scripts after page load
+            window.addEventListener('load', () => {
+                loadScript('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js', true, true, prismFallback)
+                    .then(() => {
+                        return loadScript('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js', true, true);
+                    })
+                    .catch(err => console.warn('Prism components loading failed:', err));
+            });
+        }
+        
+        // Preload next likely navigation targets
+        window.addEventListener('load', () => {
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(() => {
+                    const importantLinks = document.querySelectorAll('a[href^="#"]');
+                    importantLinks.forEach(link => {
+                        const target = document.querySelector(link.getAttribute('href'));
+                        if (target) {
+                            const rect = target.getBoundingClientRect();
+                            if (rect.top > window.innerHeight) {
+                                // Preload content that's below the fold
+                                link.addEventListener('mouseenter', () => {
+                                    target.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+                                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }, { once: true, passive: true });
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    <script src="./script.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,278 @@
+---
+layout: none
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Worker Debug - SuperClaude Guide</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            padding: 2rem; 
+            background: #f7fafc;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status { 
+            padding: 1rem; 
+            margin: 1rem 0; 
+            border-radius: 8px; 
+            border-left: 4px solid;
+        }
+        .success { 
+            background: #d4edda; 
+            border-color: #28a745; 
+            color: #155724; 
+        }
+        .error { 
+            background: #f8d7da; 
+            border-color: #dc3545; 
+            color: #721c24; 
+        }
+        .info { 
+            background: #d1ecf1; 
+            border-color: #17a2b8; 
+            color: #0c5460; 
+        }
+        .warning { 
+            background: #fff3cd; 
+            border-color: #ffc107; 
+            color: #856404; 
+        }
+        .log { 
+            background: #fff; 
+            padding: 1.5rem; 
+            border: 1px solid #dee2e6; 
+            border-radius: 8px;
+            margin: 1rem 0; 
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; 
+            white-space: pre-wrap; 
+            max-height: 400px; 
+            overflow-y: auto;
+            font-size: 0.875rem;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem 0;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .path-test {
+            background: #fff;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .path-result {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+        .path-success { background: #d4edda; color: #155724; }
+        .path-error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Service Worker Debug Tool</h1>
+        <p>GitHub Pages: <code>{{ site.url }}{{ site.baseurl }}</code></p>
+        <p>Base URL: <code>{{ site.baseurl | default: "(empty)" }}</code></p>
+        
+        <div id="status"></div>
+        
+        <div class="path-test">
+            <h3>Path Testing</h3>
+            <div id="pathTests"></div>
+        </div>
+        
+        <button onclick="testServiceWorker()" id="testBtn">🚀 Test Service Worker</button>
+        <button onclick="clearLog()" id="clearBtn">🗑️ Clear Log</button>
+        <button onclick="unregisterSW()" id="unregisterBtn">❌ Unregister SW</button>
+        
+        <h3>Debug Log</h3>
+        <div id="log"></div>
+    </div>
+    
+    <script>
+        const statusDiv = document.getElementById('status');
+        const logDiv = document.getElementById('log');
+        const pathTestsDiv = document.getElementById('pathTests');
+        let logContent = '';
+        
+        // Configuration
+        const SITE_BASEURL = '{{ site.baseurl | default: "" }}';
+        const SITE_URL = '{{ site.url }}{{ site.baseurl }}';
+        
+        function log(message, type = 'info') {
+            console.log(message);
+            const timestamp = new Date().toLocaleTimeString();
+            logContent += `[${timestamp}] ${message}\n`;
+            logDiv.textContent = logContent;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStatus(message, className) {
+            statusDiv.className = `status ${className}`;
+            statusDiv.textContent = message;
+        }
+        
+        function clearLog() {
+            logContent = '';
+            logDiv.textContent = '';
+        }
+        
+        async function unregisterSW() {
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    log(`Unregistered: ${registration.scope}`);
+                }
+                updateStatus('All Service Workers unregistered', 'info');
+            }
+        }
+        
+        async function testPaths() {
+            const currentPath = window.location.pathname;
+            const basePath = currentPath.replace(/\/[^\/]*$/, '') || '';
+            
+            const paths = [
+                './sw.js',
+                '/sw.js',
+                `${SITE_BASEURL}/sw.js`,
+                `${basePath}/sw.js`,
+                `${currentPath}sw.js`
+            ];
+            
+            pathTestsDiv.innerHTML = '<h4>Testing sw.js paths:</h4>';
+            
+            for (const path of paths) {
+                try {
+                    const response = await fetch(path, { method: 'HEAD' });
+                    const resultClass = response.ok ? 'path-success' : 'path-error';
+                    const resultText = response.ok ? '✅ Found' : `❌ ${response.status}`;
+                    
+                    pathTestsDiv.innerHTML += `
+                        <div>
+                            <code>${path}</code>
+                            <span class="path-result ${resultClass}">${resultText}</span>
+                        </div>
+                    `;
+                    
+                    log(`Path test: ${path} → ${response.status} ${response.statusText}`);
+                } catch (error) {
+                    pathTestsDiv.innerHTML += `
+                        <div>
+                            <code>${path}</code>
+                            <span class="path-result path-error">❌ Error</span>
+                        </div>
+                    `;
+                    log(`Path test: ${path} → Error: ${error.message}`);
+                }
+            }
+        }
+        
+        async function testServiceWorker() {
+            log('=== Service Worker Test Started ===');
+            log(`Current URL: ${window.location.href}`);
+            log(`Site Base URL: ${SITE_BASEURL || '(empty)'}`);
+            log(`Site Full URL: ${SITE_URL}`);
+            
+            if (!('serviceWorker' in navigator)) {
+                updateStatus('❌ Service Worker not supported', 'error');
+                log('Service Worker not supported in this browser');
+                return;
+            }
+            
+            log('✅ Service Worker supported');
+            updateStatus('🔄 Testing Service Worker registration...', 'info');
+            
+            // Test paths first
+            await testPaths();
+            
+            try {
+                const currentPath = window.location.pathname;
+                const basePath = currentPath.replace(/\/[^\/]*$/, '') || '';
+                
+                const swPaths = [
+                    './sw.js',
+                    '/sw.js',
+                    `${SITE_BASEURL}/sw.js`,
+                    `${basePath}/sw.js`,
+                    `${currentPath}sw.js`
+                ];
+                
+                let registration = null;
+                
+                for (const swPath of swPaths) {
+                    try {
+                        log(`Attempting registration with: ${swPath}`);
+                        
+                        const response = await fetch(swPath, { method: 'HEAD' });
+                        log(`Response: ${response.status} ${response.statusText}`);
+                        
+                        if (response.ok) {
+                            registration = await navigator.serviceWorker.register(swPath, {
+                                scope: './'
+                            });
+                            log(`✅ Service Worker registered successfully!`);
+                            log(`   Path: ${swPath}`);
+                            log(`   Scope: ${registration.scope}`);
+                            updateStatus(`✅ Service Worker registered! Path: ${swPath}`, 'success');
+                            break;
+                        }
+                    } catch (pathError) {
+                        log(`❌ Failed with ${swPath}: ${pathError.message}`);
+                        continue;
+                    }
+                }
+                
+                if (!registration) {
+                    updateStatus('❌ Service Worker registration failed: sw.js not found', 'error');
+                    log('❌ No valid sw.js path found');
+                } else {
+                    // Check states
+                    if (registration.active) {
+                        log(`Active SW state: ${registration.active.state}`);
+                    }
+                    if (registration.waiting) {
+                        log('SW waiting for activation');
+                    }
+                    if (registration.installing) {
+                        log('SW installing...');
+                    }
+                    
+                    // Test cache
+                    setTimeout(async () => {
+                        if ('caches' in window) {
+                            const cacheNames = await caches.keys();
+                            log(`Cache names: ${cacheNames.join(', ') || 'None'}`);
+                        }
+                    }, 2000);
+                }
+            } catch (error) {
+                updateStatus(`❌ Registration failed: ${error.message}`, 'error');
+                log(`❌ Registration error: ${error.message}`);
+                log(`   Stack: ${error.stack}`);
+            }
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            log('Page loaded - ready for testing');
+            updateStatus('Ready for testing', 'info');
+        });
+    </script>
+</body>
+</html>
