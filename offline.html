@@ -12,129 +12,260 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            color: white;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            padding: 20px;
         }
         
-        .offline-container {
+        .container {
             text-align: center;
             max-width: 500px;
-            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
-        .offline-icon {
-            font-size: 5rem;
-            margin-bottom: 1rem;
-            opacity: 0.8;
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
         }
         
-        .offline-title {
+        h1 {
             font-size: 2rem;
+            margin-bottom: 15px;
             font-weight: 600;
-            margin-bottom: 1rem;
         }
         
-        .offline-message {
+        p {
             font-size: 1.1rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
             line-height: 1.6;
+            margin-bottom: 25px;
+            opacity: 0.9;
         }
         
-        .retry-btn {
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
             background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 0.75rem 2rem;
-            border-radius: 0.5rem;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
             font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .retry-btn:hover {
+        .btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
-        .cached-content {
-            margin-top: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
-            backdrop-filter: blur(10px);
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
         }
         
-        .cached-link {
-            color: rgba(255, 255, 255, 0.9);
-            text-decoration: none;
-            display: block;
-            padding: 0.5rem;
-            margin: 0.25rem 0;
-            border-radius: 0.25rem;
-            transition: background 0.2s ease;
+        .btn-primary:hover {
+            background: white;
+            color: #5a67d8;
         }
         
-        .cached-link:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .features {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+        
+        .feature-icon {
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            p {
+                font-size: 1rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="offline-container">
-        <div class="offline-icon">📡</div>
-        <h1 class="offline-title">오프라인 모드</h1>
-        <p class="offline-message">
-            인터넷 연결을 확인할 수 없습니다.<br>
-            연결이 복구되면 자동으로 최신 콘텐츠를 불러옵니다.
-        </p>
+    <div class="container">
+        <span class="icon">📱</span>
+        <h1>오프라인 모드</h1>
+        <p>인터넷 연결이 없어도 SuperClaude 가이드의 핵심 기능을 이용하실 수 있습니다.</p>
         
-        <button class="retry-btn" onclick="location.reload()">
-            다시 시도
-        </button>
+        <div class="actions">
+            <button onclick="tryReconnect()" class="btn btn-primary" id="reconnect-btn">
+                <span>🔄</span>
+                다시 연결 시도
+            </button>
+            <button onclick="goHome()" class="btn">
+                <span>🏠</span>
+                홈으로 이동
+            </button>
+        </div>
         
-        <div class="cached-content">
-            <h3 style="margin-bottom: 1rem; font-size: 1.2rem;">캐시된 콘텐츠</h3>
-            <a href="./" class="cached-link">🏠 홈페이지</a>
-            <a href="./#getting-started" class="cached-link">🚀 시작하기</a>
-            <a href="./#core-features" class="cached-link">⚡ 핵심 기능</a>
-            <a href="./#advanced-usage" class="cached-link">🔥 고급 활용</a>
-            <a href="./#examples" class="cached-link">💼 실전 예제</a>
-            <a href="./#reference" class="cached-link">📚 참고 자료</a>
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">📖</span>
+                <span>캐시된 가이드 내용 읽기</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔍</span>
+                <span>로컬 검색 기능</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📋</span>
+                <span>코드 예제 복사</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">⚡</span>
+                <span>빠른 탐색 메뉴</span>
+            </div>
         </div>
     </div>
 
     <script>
-        // Automatically retry when connection is restored
-        window.addEventListener('online', () => {
-            location.reload();
-        });
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 3;
         
-        // Show connection status
-        function updateConnectionStatus() {
-            const isOnline = navigator.onLine;
-            const title = document.querySelector('.offline-title');
-            const message = document.querySelector('.offline-message');
+        async function tryReconnect() {
+            const btn = document.getElementById('reconnect-btn');
+            const originalContent = btn.innerHTML;
             
-            if (isOnline) {
-                title.textContent = '연결 복구됨';
-                message.innerHTML = '인터넷 연결이 복구되었습니다.<br>페이지를 새로고침하는 중...';
-                setTimeout(() => location.reload(), 1000);
+            btn.innerHTML = '<span class="loading"></span> 연결 중...';
+            btn.disabled = true;
+            
+            try {
+                reconnectAttempts++;
+                
+                // Test network connectivity
+                const response = await fetch('/', { 
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+                
+                if (response.ok) {
+                    // Connection restored, redirect to main page
+                    btn.innerHTML = '<span>✅</span> 연결됨!';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    throw new Error('Network response not ok');
+                }
+                
+            } catch (error) {
+                console.log('Reconnection failed:', error);
+                
+                if (reconnectAttempts >= maxReconnectAttempts) {
+                    btn.innerHTML = '<span>❌</span> 연결 실패';
+                    setTimeout(() => {
+                        btn.innerHTML = originalContent;
+                        btn.disabled = false;
+                    }, 3000);
+                } else {
+                    btn.innerHTML = '<span>🔄</span> 다시 시도...';
+                    setTimeout(() => {
+                        btn.innerHTML = originalContent;
+                        btn.disabled = false;
+                    }, 2000);
+                }
             }
         }
         
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
+        function goHome() {
+            // Try to navigate to cached home page
+            try {
+                window.location.href = '/';
+            } catch (error) {
+                // If navigation fails, at least reload the current page
+                window.location.reload();
+            }
+        }
         
-        // Initial check
-        updateConnectionStatus();
+        // Auto-retry connection after page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (navigator.onLine) {
+                    tryReconnect();
+                }
+            }, 2000);
+        });
+        
+        // Listen for online event
+        window.addEventListener('online', () => {
+            const btn = document.getElementById('reconnect-btn');
+            btn.innerHTML = '<span>✅</span> 연결 복구됨!';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        });
+        
+        // Update UI based on online status
+        window.addEventListener('offline', () => {
+            const btn = document.getElementById('reconnect-btn');
+            btn.innerHTML = '<span>📱</span> 오프라인 모드';
+        });
     </script>
 </body>
 </html>

@@ -1,8 +1,48 @@
 // SuperClaude Blog Service Worker
-// Minimal, performant caching with offline fallback
+// Enhanced with robust error handling and graceful fallbacks
 
 const CACHE_NAME = 'superclaude-blog-v2'; // Updated version for GitHub Pages fixes
 const OFFLINE_PAGE = './offline.html';
+
+// Enhanced error logging with context
+function logSWError(error, context, severity = 'error') {
+    const errorInfo = {
+        timestamp: new Date().toISOString(),
+        message: error.message || error,
+        context,
+        severity,
+        stack: error.stack,
+        cacheKeys: [],
+        url: self.location.href
+    };
+    
+    // Get cache info for debugging
+    caches.keys().then(keys => {
+        errorInfo.cacheKeys = keys;
+        console.group(`[SW] 🚨 ${severity.toUpperCase()}: ${context}`);
+        console.error(error);
+        console.log('Context:', context);
+        console.log('Cache Keys:', keys);
+        console.log('Timestamp:', errorInfo.timestamp);
+        console.groupEnd();
+    }).catch(() => {
+        console.error(`[SW] ${context}:`, error);
+    });
+    
+    // Broadcast error to main thread if possible
+    try {
+        self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+                client.postMessage({
+                    type: 'SW_ERROR',
+                    error: errorInfo
+                });
+            });
+        });
+    } catch (broadcastError) {
+        console.warn('[SW] Failed to broadcast error:', broadcastError);
+    }
+}
 
 // Essential files to cache immediately
 const STATIC_CACHE_URLS = [
@@ -12,7 +52,7 @@ const STATIC_CACHE_URLS = [
   './script.js',
   './favicon.ico',
   './favicon.svg',
-  OFFLINE_PAGE
+  './offline.html'
 ];
 
 // Cache-first strategy for static assets
@@ -28,21 +68,47 @@ const NETWORK_FIRST_PATTERNS = [
   /\.(?:json)$/
 ];
 
-// Install event - cache essential files
+// Install event - cache essential files with enhanced error handling
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
         console.log('[SW] Caching essential files');
-        return cache.addAll(STATIC_CACHE_URLS);
-      })
-      .then(() => {
+        
+        // Try to cache files individually to identify which ones fail
+        const cachePromises = STATIC_CACHE_URLS.map(async (url) => {
+          try {
+            await cache.add(url);
+            console.log(`[SW] ✅ Cached: ${url}`);
+          } catch (error) {
+            logSWError(error, `Cache Add: ${url}`, 'warning');
+            
+            // Try alternative fetch and cache strategy
+            try {
+              const response = await fetch(url);
+              if (response.ok) {
+                await cache.put(url, response);
+                console.log(`[SW] ✅ Cached (fallback): ${url}`);
+              } else {
+                throw new Error(`HTTP ${response.status}`);
+              }
+            } catch (fallbackError) {
+              logSWError(fallbackError, `Cache Fallback: ${url}`, 'error');
+            }
+          }
+        });
+        
+        await Promise.allSettled(cachePromises);
         console.log('[SW] Installation complete');
         return self.skipWaiting();
-      })
-      .catch(err => {
-        console.warn('[SW] Cache installation failed:', err);
-      })
+        
+      } catch (error) {
+        logSWError(error, 'Service Worker Install', 'critical');
+        // Continue with installation even if caching fails
+        return self.skipWaiting();
+      }
+    })()
   );
 });
 
@@ -94,23 +160,102 @@ self.addEventListener('fetch', event => {
   event.respondWith(networkFirstWithFallback(request));
 });
 
-// Cache-first strategy
+// Enhanced cache-first strategy with robust error handling
 async function cacheFirst(request) {
   try {
+    // Try cache first
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
+      console.log(`[SW] ✅ Cache hit: ${request.url}`);
+      
+      // Update cache in background if resource is stale (older than 1 hour)
+      const cacheTime = cachedResponse.headers.get('sw-cache-time');
+      if (cacheTime && Date.now() - parseInt(cacheTime) > 3600000) {
+        updateCacheInBackground(request).catch(error => {
+          logSWError(error, `Background Cache Update: ${request.url}`, 'warning');
+        });
+      }
+      
       return cachedResponse;
     }
 
-    const networkResponse = await fetch(request);
+    // Fetch from network with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    
+    const networkResponse = await fetch(request, {
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+
     if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        // Clone response and add timestamp header
+        const responseToCache = networkResponse.clone();
+        const headers = new Headers(responseToCache.headers);
+        headers.set('sw-cache-time', Date.now().toString());
+        
+        const responseWithHeaders = new Response(responseToCache.body, {
+          status: responseToCache.status,
+          statusText: responseToCache.statusText,
+          headers: headers
+        });
+        
+        await cache.put(request, responseWithHeaders);
+        console.log(`[SW] ✅ Cached from network: ${request.url}`);
+      } catch (cacheError) {
+        logSWError(cacheError, `Cache Put: ${request.url}`, 'warning');
+        // Continue without caching
+      }
     }
+    
     return networkResponse;
+    
   } catch (error) {
-    console.warn('[SW] Cache-first failed:', error);
-    return caches.match(request);
+    logSWError(error, `Cache First: ${request.url}`, 'warning');
+    
+    // Fallback to cache even for failed requests
+    try {
+      const fallbackResponse = await caches.match(request);
+      if (fallbackResponse) {
+        console.log(`[SW] 🔄 Fallback cache hit: ${request.url}`);
+        return fallbackResponse;
+      }
+    } catch (fallbackError) {
+      logSWError(fallbackError, `Cache Fallback: ${request.url}`, 'error');
+    }
+    
+    // Return minimal error response
+    return new Response('Resource temporarily unavailable', {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
+}
+
+// Background cache update function
+async function updateCacheInBackground(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      const headers = new Headers(response.headers);
+      headers.set('sw-cache-time', Date.now().toString());
+      
+      const responseWithHeaders = new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: headers
+      });
+      
+      await cache.put(request, responseWithHeaders);
+      console.log(`[SW] 🔄 Background updated: ${request.url}`);
+    }
+  } catch (error) {
+    throw error; // Re-throw for caller to handle
   }
 }
 

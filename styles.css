@@ -2971,3 +2971,211 @@ button:focus {
         padding: 0.5rem 1rem;
     }
 }
+
+/* Network-adaptive optimizations */
+.slow-connection {
+    /* Disable expensive animations on slow connections */
+    animation-duration: 0.1s !important;
+    transition-duration: 0.1s !important;
+}
+
+.slow-connection .hero {
+    background: #667eea; /* Fallback solid color instead of gradient */
+}
+
+.slow-connection .fade-in,
+.slow-connection .feature-card,
+.slow-connection .persona-card {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.slow-connection .nav-backdrop {
+    backdrop-filter: none !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Fallback styles for external resource failures */
+.fallback-highlighting {
+    background: #2d3748 !important;
+    color: #e2e8f0 !important;
+    border-left: 3px solid #667eea;
+    font-family: Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    line-height: 1.5;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+
+/* Enhanced error state styling */
+.network-error {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: #e53e3e;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    z-index: 10000;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.network-error.success {
+    background: #38a169;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Enhanced Error Handling and Fallback Styles */
+
+/* Fallback font loading detection and graceful degradation */
+@supports (font-display: swap) {
+    @font-face {
+        font-family: 'Inter-Fallback';
+        src: local('system-ui'), local('-apple-system'), local('Segoe UI');
+        font-display: swap;
+    }
+}
+
+/* Update body font stack for better fallbacks */
+body.font-fallback {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif !important;
+}
+
+/* Enhanced error states and offline indicators */
+.resource-error {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    margin: 10px 0;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+    color: white;
+    text-align: center;
+    padding: 8px;
+    font-size: 0.875rem;
+    z-index: 10001;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.offline-indicator.show {
+    transform: translateY(0);
+}
+
+/* Code block fallback styles for when Prism.js fails */
+.code-block-fallback pre {
+    background: #2d3748 !important;
+    color: #e2e8f0 !important;
+    padding: 1rem !important;
+    border-radius: 0.5rem !important;
+    overflow-x: auto !important;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    border: 1px solid #4a5568 !important;
+}
+
+.code-block-fallback code {
+    background: #4a5568 !important;
+    color: #e2e8f0 !important;
+    padding: 0.125rem 0.25rem !important;
+    border-radius: 0.25rem !important;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+}
+
+/* Navigation fallback for when JS fails */
+.nav-toggle.fallback {
+    display: none;
+}
+
+.nav-list.fallback {
+    display: block !important;
+    position: static !important;
+    background: transparent !important;
+    transform: none !important;
+    opacity: 1 !important;
+    max-height: none !important;
+}
+
+/* Copy button fallback */
+.copy-btn.disabled {
+    background: rgba(128, 128, 128, 0.3) !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.copy-btn.disabled:hover {
+    background: rgba(128, 128, 128, 0.3) !important;
+    transform: none !important;
+}
+
+/* Error notification animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Loading state for buttons */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    margin-left: -8px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: currentColor;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

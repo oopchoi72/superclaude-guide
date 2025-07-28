@@ -1234,6 +1234,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add copy buttons to code blocks
     addCopyButtons();
+    
+    // Check external resources and apply fallbacks if needed
+    ResourceManager.checkExternalResources().catch(error => {
+        ErrorTracker.log(error, 'Resource Manager Init', 'warning');
+    });
 
     // Interactive Examples
     function initializeInteractiveExamples() {
@@ -1666,6 +1671,153 @@ const utils = {
         });
     }
 };
+
+    // Mark successful initialization
+    console.log('✅ SuperClaude Blog initialization completed successfully');
+    
+    } catch (error) {
+        // Main error handler for DOMContentLoaded
+        ErrorTracker.log(error, 'Main Initialization', 'critical');
+        
+        // Show user-friendly error message
+        showUserFriendlyError('페이지 초기화 중 오류가 발생했습니다. 페이지를 새로고침해 주세요.');
+        
+        // Try to maintain basic functionality
+        try {
+            // Ensure at least basic navigation works
+            const navToggle = document.querySelector('.nav-toggle');
+            const navList = document.querySelector('.nav-list');
+            
+            if (navToggle && navList) {
+                navToggle.addEventListener('click', () => {
+                    navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+                });
+            }
+        } catch (fallbackError) {
+            ErrorTracker.log(fallbackError, 'Emergency Fallback', 'critical');
+        }
+    }
+});
+
+// User-friendly error notification system
+function showUserFriendlyError(message, isTemporary = true) {
+    try {
+        // Remove any existing error notifications
+        const existingNotification = document.querySelector('.error-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = 'error-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            max-width: 350px;
+            line-height: 1.4;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <span style="font-size: 18px;">⚠️</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 4px;">오류 발생</div>
+                    <div>${message}</div>
+                    ${isTemporary ? '<div style="font-size: 12px; opacity: 0.9; margin-top: 8px;">이 메시지는 자동으로 사라집니다.</div>' : ''}
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" style="
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 16px;
+                    cursor: pointer;
+                    padding: 0;
+                    line-height: 1;
+                ">×</button>
+            </div>
+        `;
+        
+        // Add animation keyframes if not already present
+        if (!document.querySelector('#error-animation-styles')) {
+            const style = document.createElement('style');
+            style.id = 'error-animation-styles';
+            style.textContent = `
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                
+                @keyframes slideOutRight {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 10 seconds if temporary
+        if (isTemporary) {
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 10000);
+        }
+        
+    } catch (error) {
+        // Fallback to alert if notification creation fails
+        alert(message);
+        ErrorTracker.log(error, 'Error Notification', 'error');
+    }
+}
+
+// Global error handlers
+window.addEventListener('error', (event) => {
+    ErrorTracker.log(event.error, 'Global Error', 'error');
+    
+    // Show user-friendly message for critical errors
+    if (event.error && event.error.stack) {
+        showUserFriendlyError('예상치 못한 오류가 발생했습니다. 문제가 지속되면 페이지를 새로고침해 주세요.');
+    }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    ErrorTracker.log(event.reason, 'Unhandled Promise Rejection', 'error');
+    
+    // Prevent the default browser console error
+    event.preventDefault();
+    
+    showUserFriendlyError('비동기 작업 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+});
 
 // Export utilities for use in other scripts
 window.SuperClaudeUtils = utils;

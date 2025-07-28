@@ -6,6 +6,23 @@
     <title>SuperClaude 사용법 가이드 | 완벽한 AI 개발 도구 활용하기</title>
     <meta name="description" content="SuperClaude 프레임워크의 완벽한 사용법을 배워보세요. 명령어, 플래그, 페르소나 시스템부터 고급 기능까지 모든 것을 다룹니다.">
     
+    <!-- Open Graph / GitHub Pages meta tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://oopchoi72.github.io/superclaude-guide/">
+    <meta property="og:title" content="SuperClaude 사용법 가이드 | 완벽한 AI 개발 도구 활용하기">
+    <meta property="og:description" content="SuperClaude 프레임워크의 완벽한 사용법을 배워보세요. 명령어, 플래그, 페르소나 시스템부터 고급 기능까지 모든 것을 다룹니다.">
+    <meta property="og:image" content="https://oopchoi72.github.io/superclaude-guide/favicon.svg">
+    
+    <!-- Twitter Card meta tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://oopchoi72.github.io/superclaude-guide/">
+    <meta name="twitter:title" content="SuperClaude 사용법 가이드">
+    <meta name="twitter:description" content="Claude Code SuperClaude 프레임워크의 완벽한 사용법 가이드">
+    <meta name="twitter:image" content="https://oopchoi72.github.io/superclaude-guide/favicon.svg">
+    
+    <!-- Canonical URL for SEO -->
+    <link rel="canonical" href="https://oopchoi72.github.io/superclaude-guide/">
+    
     <!-- Mobile optimization meta tags -->
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
@@ -1547,9 +1564,42 @@ claude --version</code></pre>
             });
         };
         
-        // Mobile-specific optimizations
+        // Enhanced mobile and network detection
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const isSlowConnection = navigator.connection && (navigator.connection.effectiveType === 'slow-2g' || navigator.connection.effectiveType === '2g');
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlowConnection = connection && (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g');
+        const isLimitedData = connection && connection.saveData;
+        
+        // Network quality monitoring
+        let networkQuality = 'unknown';
+        if (connection) {
+            networkQuality = connection.effectiveType || 'unknown';
+            console.log(`📶 Initial network quality: ${networkQuality}`);
+            
+            // Monitor connection changes
+            connection.addEventListener('change', () => {
+                const newQuality = connection.effectiveType;
+                if (newQuality !== networkQuality) {
+                    console.log(`📶 Network changed: ${networkQuality} → ${newQuality}`);
+                    networkQuality = newQuality;
+                    
+                    // Adjust loading strategy based on new connection
+                    if (newQuality === 'slow-2g' || newQuality === '2g') {
+                        document.documentElement.classList.add('slow-connection');
+                        console.log('🐌 Switching to slow connection optimizations');
+                    } else {
+                        document.documentElement.classList.remove('slow-connection');
+                        console.log('🚀 Fast connection detected, enabling full features');
+                    }
+                }
+            });
+            
+            // Set initial state
+            if (isSlowConnection || isLimitedData) {
+                document.documentElement.classList.add('slow-connection');
+                console.log('🐌 Slow/limited connection detected');
+            }
+        }
         
         // Prism.js fallback function
         const prismFallback = () => {
@@ -1595,6 +1645,56 @@ claude --version</code></pre>
                     .catch(err => console.warn('Prism components loading failed:', err));
             });
         }
+        
+        // Network status monitoring and user feedback
+        function showNetworkStatus(message, isError = false) {
+            // Remove existing notification
+            const existing = document.querySelector('.network-error');
+            if (existing) existing.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = `network-error ${isError ? '' : 'success'}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 3000);
+        }
+        
+        // Monitor online/offline status
+        window.addEventListener('online', () => {
+            console.log('🌐 Connection restored');
+            showNetworkStatus('✅ 연결이 복구되었습니다', false);
+            document.documentElement.classList.remove('slow-connection');
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('📱 Connection lost');
+            showNetworkStatus('⚠️ 인터넷 연결이 끊어졌습니다', true);
+            document.documentElement.classList.add('slow-connection');
+        });
+        
+        // Track resource loading failures
+        let failedResources = 0;
+        const maxFailures = 2; // Show warning after 2 failures
+        
+        window.addEventListener('error', (e) => {
+            if (e.target !== window) {
+                failedResources++;
+                console.warn('❌ Resource failed to load:', e.target.src || e.target.href);
+                
+                if (failedResources >= maxFailures) {
+                    showNetworkStatus('⚠️ 일부 리소스 로딩에 실패했습니다', true);
+                }
+            }
+        }, true);
         
         // Preload next likely navigation targets
         window.addEventListener('load', () => {
