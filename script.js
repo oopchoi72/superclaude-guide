@@ -410,14 +410,19 @@ const ResourceManager = {
 
 document.addEventListener('DOMContentLoaded', function() {
     try {
-    // Enhanced Mobile Navigation System with Error Handling
-    const navToggle = SafeDOM.querySelector('.nav-toggle');
-    const navList = SafeDOM.querySelector('.nav-list');
-    const header = SafeDOM.querySelector('.header');
+    // Simple Mobile Navigation System
+    const navToggle = document.querySelector('.nav-toggle');
+    const navList = document.querySelector('.nav-list');
+    const header = document.querySelector('.header');
+    
+    console.log('Navigation elements found:', {
+        navToggle: !!navToggle,
+        navList: !!navList
+    });
     
     if (!navToggle || !navList) {
-        ErrorTracker.log(new Error('Navigation elements not found'), 'Navigation Setup', 'warning');
         console.warn('Navigation elements missing - mobile menu may not work properly');
+        return;
     }
     let isMenuOpen = false;
     let touchStartX = 0;
@@ -433,122 +438,54 @@ document.addEventListener('DOMContentLoaded', function() {
         SafeDOM.setAttribute(navList, 'id', 'nav-list');
         SafeDOM.setAttribute(navList, 'role', 'menu');
         
-        // Enhanced hamburger animation with CSS transforms
+        // Simple hamburger animation
         function updateHamburgerAnimation(isOpen) {
-            try {
-                const spans = SafeDOM.querySelectorAll('span', navToggle);
-                if (!spans || spans.length === 0) {
-                    ErrorTracker.log(new Error('Hamburger spans not found'), 'Navigation Animation', 'warning');
-                    return;
-                }
-                
-                spans.forEach((span, index) => {
-                    try {
-                        span.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                        if (isOpen) {
-                            if (index === 0) {
-                                span.style.transform = 'rotate(45deg) translate(5px, 5px)';
-                                span.style.transformOrigin = 'center';
-                            }
-                            if (index === 1) {
-                                span.style.opacity = '0';
-                                span.style.transform = 'scale(0)';
-                            }
-                            if (index === 2) {
-                                span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
-                                span.style.transformOrigin = 'center';
-                            }
-                        } else {
-                            span.style.transform = 'none';
-                            span.style.opacity = '1';
-                            span.style.transformOrigin = 'center';
-                        }
-                    } catch (spanError) {
-                        ErrorTracker.log(spanError, `Span Animation ${index}`, 'warning');
+            const spans = navToggle.querySelectorAll('span');
+            console.log('Updating hamburger animation:', isOpen, 'spans found:', spans.length);
+            
+            spans.forEach((span, index) => {
+                span.style.transition = 'all 0.3s ease';
+                if (isOpen) {
+                    if (index === 0) {
+                        span.style.transform = 'rotate(45deg) translate(5px, 5px)';
                     }
-                });
-            } catch (error) {
-                ErrorTracker.log(error, 'Hamburger Animation', 'error');
-                // Fallback: simple class-based animation
-                try {
-                    if (isOpen) {
-                        SafeDOM.addClass(navToggle, 'open');
-                    } else {
-                        SafeDOM.removeClass(navToggle, 'open');
+                    if (index === 1) {
+                        span.style.opacity = '0';
                     }
-                } catch (fallbackError) {
-                    ErrorTracker.log(fallbackError, 'Animation Fallback', 'error');
+                    if (index === 2) {
+                        span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
+                    }
+                } else {
+                    span.style.transform = 'none';
+                    span.style.opacity = '1';
                 }
-            }
+            });
         }
         
-        // Toggle menu function with comprehensive error handling
+        // Simple toggle menu function
         function toggleMenu(open = null) {
-            try {
-                const shouldOpen = open !== null ? open : !isMenuOpen;
-                isMenuOpen = shouldOpen;
-                
-                // Safe DOM manipulation with fallbacks
-                if (navList) {
-                    if (shouldOpen) {
-                        SafeDOM.addClass(navList, 'active');
-                    } else {
-                        SafeDOM.removeClass(navList, 'active');
-                    }
-                }
-                
-                if (navToggle) {
-                    if (shouldOpen) {
-                        SafeDOM.addClass(navToggle, 'active');
-                    } else {
-                        SafeDOM.removeClass(navToggle, 'active');
-                    }
-                    SafeDOM.setAttribute(navToggle, 'aria-expanded', shouldOpen.toString());
-                }
-                
-                // Enhanced hamburger animation
-                updateHamburgerAnimation(shouldOpen);
-                
-                // Prevent body scroll when menu is open
-                try {
-                    document.body.style.overflow = shouldOpen ? 'hidden' : '';
-                } catch (e) {
-                    ErrorTracker.log(e, 'Body Scroll Control', 'warning');
-                }
-                
-                // Add backdrop for mobile menu
-                try {
-                    if (shouldOpen) {
-                        createMenuBackdrop();
-                    } else {
-                        removeMenuBackdrop();
-                    }
-                } catch (e) {
-                    ErrorTracker.log(e, 'Menu Backdrop', 'warning');
-                }
-                
-                // Focus management for accessibility
-                try {
-                    if (shouldOpen && navList) {
-                        navList.focus();
-                    } else if (navToggle) {
-                        navToggle.focus();
-                    }
-                } catch (e) {
-                    ErrorTracker.log(e, 'Focus Management', 'warning');
-                }
-            } catch (error) {
-                ErrorTracker.log(error, 'Toggle Menu', 'error');
-                
-                // Minimal fallback - just show/hide the menu
-                try {
-                    if (navList) {
-                        navList.style.display = shouldOpen ? 'block' : 'none';
-                    }
-                } catch (fallbackError) {
-                    ErrorTracker.log(fallbackError, 'Menu Toggle Fallback', 'critical');
-                }
+            const shouldOpen = open !== null ? open : !isMenuOpen;
+            isMenuOpen = shouldOpen;
+            
+            console.log('Toggling menu:', shouldOpen);
+            
+            // Toggle active class
+            if (shouldOpen) {
+                navList.classList.add('active');
+                navToggle.classList.add('active');
+            } else {
+                navList.classList.remove('active');
+                navToggle.classList.remove('active');
             }
+            
+            // Update ARIA
+            navToggle.setAttribute('aria-expanded', shouldOpen.toString());
+            
+            // Hamburger animation
+            updateHamburgerAnimation(shouldOpen);
+            
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = shouldOpen ? 'hidden' : '';
         }
         
         // Create backdrop for mobile menu
@@ -592,24 +529,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Enhanced touch event handling
-        navToggle.addEventListener('click', (e) => {
+        // Simple click event handler
+        navToggle.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
+            console.log('Nav toggle clicked!');
             toggleMenu();
         });
         
-        // Improved touch responsiveness
-        navToggle.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            navToggle.style.transform = 'scale(0.95)';
-        }, { passive: false });
-        
-        navToggle.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            navToggle.style.transform = 'scale(1)';
-            toggleMenu();
-        }, { passive: false });
+        // Add initial ARIA attributes
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.setAttribute('aria-controls', 'nav-list');
+        navList.setAttribute('id', 'nav-list');
         
         // Swipe gesture support for navigation
         let swipeStartX = 0;
